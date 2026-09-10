@@ -1,4 +1,5 @@
 const websiteService = require("../services/website.service");
+const Website = require("../models/website.model");
 
 const addWebsite = async (req, res) => {
   try {
@@ -94,46 +95,40 @@ const addWebsite = async (req, res) => {
 
 
 
-const getWebsites = async (type = "all") => {
-  let filter = {};
+const getWebsites = async (req, res) => {
+  try {
+    const { type = "all" } = req.query;
 
-  if (type === "all") {
-    filter = {
-      isDeleted: false,
-    };
+    const allowedTypes = [
+      "all",
+      "premium",
+      "showResult",
+      "unregistered",
+    ];
+
+    if (!allowedTypes.includes(type)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid type. Use all, premium, showResult or unregistered",
+      });
+    }
+
+    const websites = await websiteService.getWebsites(type);
+
+    return res.status(200).json({
+      success: true,
+      count: websites.length,
+      data: websites,
+    });
+  } catch (error) {
+    console.error("Get websites error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
-
-  else if (type === "premium") {
-    filter = {
-      type: "premium",
-      isDeleted: false,
-    };
-  }
-
-  else if (type === "showResult") {
-    filter = {
-      type: "showResult",
-      isDeleted: false,
-    };
-  }
-
-  else if (type === "unregistered") {
-    filter = {
-      isDeleted: true,
-    };
-  }
-
-  else {
-    throw new Error(
-      "Invalid type. Use all, premium, showResult or unregistered"
-    );
-  }
-
-  const websites = await Website.find(filter).sort({
-    createdAt: -1,
-  });
-
-  return websites;
 };
 
 

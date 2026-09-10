@@ -59,17 +59,16 @@ const getWebsites = async (type = "all") => {
     };
   }
 
-
   else if (type === "premium") {
     filter = {
-      "premium.enabled": true,
+      type: "premium",
       isDeleted: false,
     };
   }
 
   else if (type === "showResult") {
     filter = {
-      "showResult.enabled": true,
+      type: "showResult",
       isDeleted: false,
     };
   }
@@ -79,6 +78,7 @@ const getWebsites = async (type = "all") => {
       isDeleted: true,
     };
   }
+
   else {
     throw new Error(
       "Invalid type. Use all, premium, showResult or unregistered"
