@@ -24,7 +24,6 @@ const addWebsite = async (data) => {
 
     domainUrl: domainUrl.trim(),
 
-    // Website Type
     type: Array.isArray(type) ? type : [],
 
     premium: {
@@ -101,46 +100,155 @@ const getWebsiteById = async (id) => {
 };
 
 
+// UPDATE WEBSITE
+
 const updateWebsite = async (id, data) => {
+
   const website = await Website.findById(id);
 
   if (!website) {
     return null;
   }
 
-  // Update only the fields we allow
   if (data.websiteName !== undefined) {
-    website.websiteName = data.websiteName.trim();
+
+    if (!data.websiteName.trim()) {
+      throw new Error("Website name is required");
+    }
+
+    website.websiteName =
+      data.websiteName.trim();
   }
 
   if (data.domainUrl !== undefined) {
-    website.domainUrl = data.domainUrl.trim();
+
+    if (!data.domainUrl.trim()) {
+      throw new Error("Domain URL is required");
+    }
+
+    const existingWebsite = await Website.findOne({
+      domainUrl: data.domainUrl.trim(),
+      _id: { $ne: id },
+    });
+
+    if (existingWebsite) {
+      throw new Error(
+        "Website with this domain already exists"
+      );
+    }
+
+    website.domainUrl =
+      data.domainUrl.trim();
   }
 
-  // Premium update
+
+  if (data.type !== undefined) {
+
+    if (!Array.isArray(data.type)) {
+      throw new Error("Type must be an array");
+    }
+
+    const allowedTypes = [
+      "premium",
+      "showResult",
+    ];
+
+    const isValidType = data.type.every((item) =>
+      allowedTypes.includes(item)
+    );
+
+    if (!isValidType) {
+      throw new Error(
+        "Invalid type. Allowed values are premium and showResult"
+      );
+    }
+
+    website.type = data.type;
+  }
+
+
   if (data.premium !== undefined) {
+
+    const premiumEnabled =
+      data.premium.enabled === true;
+
+
+    if (premiumEnabled) {
+
+      if (
+        !data.premium.endpoint ||
+        !data.premium.endpoint.trim()
+      ) {
+        throw new Error(
+          "Premium endpoint is required"
+        );
+      }
+
+      if (
+        !data.premium.rollbackEndpoint ||
+        !data.premium.rollbackEndpoint.trim()
+      ) {
+        throw new Error(
+          "Premium rollback endpoint is required"
+        );
+      }
+    }
+
+
     website.premium = {
-      enabled: data.premium.enabled === true,
-      endpoint: data.premium.endpoint?.trim() || "",
+      enabled: premiumEnabled,
+      endpoint:
+        data.premium.endpoint?.trim() || "",
       rollbackEndpoint:
         data.premium.rollbackEndpoint?.trim() || "",
     };
   }
 
-  // Show Result update
   if (data.showResult !== undefined) {
+
+    const showResultEnabled =
+      data.showResult.enabled === true;
+
+    if (showResultEnabled) {
+
+      if (
+        !data.showResult.endpoint ||
+        !data.showResult.endpoint.trim()
+      ) {
+        throw new Error(
+          "Show Result endpoint is required"
+        );
+      }
+
+      if (
+        !data.showResult.rollbackEndpoint ||
+        !data.showResult.rollbackEndpoint.trim()
+      ) {
+        throw new Error(
+          "Show Result rollback endpoint is required"
+        );
+      }
+    }
+
+
     website.showResult = {
-      enabled: data.showResult.enabled === true,
-      endpoint: data.showResult.endpoint?.trim() || "",
+      enabled: showResultEnabled,
+      endpoint:
+        data.showResult.endpoint?.trim() || "",
       rollbackEndpoint:
         data.showResult.rollbackEndpoint?.trim() || "",
     };
   }
 
-  // Auto Result update
+
+  // AUTO RESULT UPDATE
+
   if (data.isAutoResult !== undefined) {
-    website.isAutoResult = data.isAutoResult === true;
+
+    website.isAutoResult =
+      data.isAutoResult === true;
   }
+
 
   await website.save();
 

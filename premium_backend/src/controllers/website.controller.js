@@ -70,9 +70,6 @@ const addWebsite = async (req, res) => {
       }
     }
 
-
-    // SERVICE
-
     const website = await websiteService.addWebsite(req.body);
 
     return res.status(201).json({
@@ -167,14 +164,14 @@ const getWebsiteById = async (req, res) => {
 
 // UPDATE WEBSITE
 
+// UPDATE WEBSITE
+
 const updateWebsite = async (req, res) => {
   try {
-
     const website = await websiteService.updateWebsite(
       req.params.id,
       req.body
     );
-
 
     if (!website) {
       return res.status(404).json({
@@ -183,7 +180,6 @@ const updateWebsite = async (req, res) => {
       });
     }
 
-
     return res.status(200).json({
       success: true,
       message: "Website updated successfully",
@@ -191,7 +187,6 @@ const updateWebsite = async (req, res) => {
     });
 
   } catch (error) {
-
     console.error("Update website error:", error);
 
     return res.status(500).json({
