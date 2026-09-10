@@ -1,0 +1,777 @@
+<div class="page-container">
+
+  <!-- ================================================= -->
+  <!-- HEADER -->
+  <!-- ================================================= -->
+
+  <div class="page-header">
+
+    <div>
+
+      <span class="page-tag">
+        WEBSITE MANAGEMENT
+      </span>
+
+      <h1>
+        Domain Whitelisting
+      </h1>
+
+      <p>
+        Manage websites that are allowed to access AutoScore results.
+      </p>
+
+    </div>
+
+
+    <!-- ADD BUTTON -->
+
+    <button
+      class="add-btn"
+      (click)="openAddPopup()"
+    >
+
+      <span class="plus">
+        +
+      </span>
+
+      Add Whitelisting
+
+    </button>
+
+  </div>
+
+
+  <!-- ================================================= -->
+  <!-- FILTER BUTTONS -->
+  <!-- ================================================= -->
+
+  <div class="filter-section">
+
+    <!-- ALL -->
+
+    <button
+      class="filter-btn"
+      [class.active]="selectedFilter === 'all'"
+      (click)="filterWebsites('all')"
+    >
+      All
+    </button>
+
+
+    <!-- PREMIUM -->
+
+    <button
+      class="filter-btn"
+      [class.active]="selectedFilter === 'premium'"
+      (click)="filterWebsites('premium')"
+    >
+      Premium
+    </button>
+
+
+    <!-- SHOW RESULT -->
+
+    <button
+      class="filter-btn"
+      [class.active]="selectedFilter === 'showResult'"
+      (click)="filterWebsites('showResult')"
+    >
+      Show Result
+    </button>
+
+
+    <!-- UNREGISTERED -->
+
+    <button
+      class="filter-btn"
+      [class.active]="selectedFilter === 'unregistered'"
+      (click)="filterWebsites('unregistered')"
+    >
+      UnRegistered Web
+    </button>
+
+
+    <!-- ALL BLOCK -->
+
+    <button
+      class="block-btn"
+    >
+      All Block
+    </button>
+
+  </div>
+
+
+  <!-- ================================================= -->
+  <!-- STATISTICS -->
+  <!-- ================================================= -->
+
+  <div class="stats-container">
+
+
+    <!-- TOTAL WEBSITES -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon">
+        🌐
+      </div>
+
+      <div>
+
+        <span>
+          Total Websites
+        </span>
+
+        <strong>
+          {{ websites.length }}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- PREMIUM -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon premium-icon">
+        ★
+      </div>
+
+      <div>
+
+        <span>
+          Premium
+        </span>
+
+        <strong>
+          {{ getPremiumWebsiteCount() }}
+        </strong>
+
+      </div>
+
+    </div>
+
+
+    <!-- ACTIVE -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon active-icon">
+        ✓
+      </div>
+
+      <div>
+
+        <span>
+          Active
+        </span>
+
+        <strong>
+          {{ getActiveWebsiteCount() }}
+        </strong>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================================================= -->
+  <!-- WEBSITE TABLE -->
+  <!-- ================================================= -->
+
+  <div class="table-card">
+
+
+    <!-- TABLE HEADER -->
+
+    <div class="table-header">
+
+      <div>
+
+        <h2>
+          Whitelisted Websites
+        </h2>
+
+        <p>
+          List of registered websites
+        </p>
+
+      </div>
+
+
+      <!-- SEARCH -->
+
+      <div class="search-box">
+
+        🔍
+
+        <input
+          type="text"
+          placeholder="Search website..."
+        />
+
+      </div>
+
+    </div>
+
+
+    <!-- ================================================= -->
+    <!-- TABLE -->
+    <!-- ================================================= -->
+
+    <div class="table-wrapper">
+
+      <table>
+
+
+        <!-- TABLE HEAD -->
+
+        <thead>
+
+          <tr>
+
+            <th>
+              S.No
+            </th>
+
+            <th>
+              Website
+            </th>
+
+            <th>
+              Domain URL
+            </th>
+
+            <th>
+              End Point
+            </th>
+
+            <th>
+              Type
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              Action
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <!-- ================================================= -->
+        <!-- TABLE BODY -->
+        <!-- ================================================= -->
+
+        <tbody>
+
+          @for (
+            website of filteredWebsites;
+            track website._id;
+            let i = $index
+          ) {
+
+            <tr>
+
+
+              <!-- S.NO -->
+
+              <td>
+
+                <span class="serial">
+                  {{ i + 1 }}
+                </span>
+
+              </td>
+
+
+              <!-- WEBSITE -->
+
+              <td>
+
+                <div class="website-info">
+
+
+                  <!-- WEBSITE LOGO -->
+
+                  <div class="website-logo">
+
+                    {{
+                      website.websiteName?.charAt(0)?.toUpperCase()
+                    }}
+
+                  </div>
+
+
+                  <!-- WEBSITE NAME -->
+
+                  <div>
+
+                    <strong>
+                      {{ website.websiteName }}
+                    </strong>
+
+                    <small>
+                      Registered Website
+                    </small>
+
+                  </div>
+
+                </div>
+
+              </td>
+
+
+              <!-- DOMAIN URL -->
+
+              <td>
+
+                <span class="domain">
+                  {{ website.domainUrl }}
+                </span>
+
+              </td>
+
+
+              <!-- ENDPOINT -->
+
+              <td>
+
+                <span class="endpoint">
+                  {{ website.endpoint }}
+                </span>
+
+              </td>
+
+
+              <!-- TYPE -->
+
+              <td>
+
+                @if (website.type === 'Premium') {
+
+                  <span class="badge premium">
+                    ★ Premium
+                  </span>
+
+                }
+                @else {
+
+                  <span class="badge result">
+                    Show Result
+                  </span>
+
+                }
+
+              </td>
+
+
+              <!-- STATUS -->
+
+              <td>
+
+                <span class="status">
+
+                  <span class="status-dot"></span>
+
+                  {{ website.status }}
+
+                </span>
+
+              </td>
+
+
+              <!-- ACTION -->
+
+              <td>
+
+                <div class="actions">
+
+
+                  <!-- EDIT -->
+
+                  <button
+                    class="edit-btn"
+                    (click)="editWebsite(website)"
+                  >
+                    Edit
+                  </button>
+
+
+                  <!-- UNREGISTER -->
+
+                  <button
+                    class="delete-btn"
+                    (click)="unregisterWebsite(website)"
+                  >
+                    Unregister
+                  </button>
+
+                </div>
+
+              </td>
+
+            </tr>
+
+          }
+
+
+          <!-- ================================================= -->
+          <!-- EMPTY STATE -->
+          <!-- ================================================= -->
+
+          @if (filteredWebsites.length === 0) {
+
+            <tr>
+
+              <td
+                colspan="7"
+                class="empty"
+              >
+
+                No whitelisted websites found.
+
+              </td>
+
+            </tr>
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ================================================= -->
+<!-- ADD WHITELISTING MODAL -->
+<!-- ================================================= -->
+
+@if (showPopup) {
+
+  <div
+    class="modal-overlay"
+    (click)="closePopup()"
+  >
+
+
+    <div
+      class="modal"
+      (click)="$event.stopPropagation()"
+    >
+
+
+      <!-- ================================================= -->
+      <!-- MODAL HEADER -->
+      <!-- ================================================= -->
+
+      <div class="modal-header">
+
+        <div class="modal-title">
+
+
+          <div class="modal-icon">
+            +
+          </div>
+
+
+          <div>
+
+            <h2>
+              Add Whitelisting
+            </h2>
+
+            <p>
+              Register a new website
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <!-- CLOSE -->
+
+        <button
+          class="close-btn"
+          (click)="closePopup()"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- FORM -->
+      <!-- ================================================= -->
+
+      <div class="form-container">
+
+
+        <!-- WEBSITE NAME -->
+
+        <div class="form-group">
+
+          <label>
+
+            Website Name
+
+            <span>
+              *
+            </span>
+
+          </label>
+
+          <input
+            type="text"
+            placeholder="Enter website name"
+          />
+
+        </div>
+
+
+        <!-- DOMAIN URL -->
+
+        <div class="form-group">
+
+          <label>
+
+            Domain URL
+
+            <span>
+              *
+            </span>
+
+          </label>
+
+          <input
+            type="text"
+            placeholder="https://example.com"
+          />
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- OPTIONS -->
+        <!-- ================================================= -->
+
+        <div class="options">
+
+
+          <!-- PREMIUM -->
+
+          <label class="checkbox-container">
+
+            <input
+              type="checkbox"
+              [(ngModel)]="isPremium"
+            />
+
+            <span class="custom-checkbox"></span>
+
+            <div>
+
+              <strong>
+                Premium
+              </strong>
+
+              <small>
+                Enable premium results
+              </small>
+
+            </div>
+
+          </label>
+
+
+          <!-- SHOW RESULT -->
+
+          <label class="checkbox-container">
+
+            <input
+              type="checkbox"
+              [(ngModel)]="isShowResult"
+            />
+
+            <span class="custom-checkbox"></span>
+
+            <div>
+
+              <strong>
+                Show Result
+              </strong>
+
+              <small>
+                Allow result display
+              </small>
+
+            </div>
+
+          </label>
+
+        </div>
+
+
+        <!-- ================================================= -->
+        <!-- PREMIUM SECTION -->
+        <!-- ================================================= -->
+
+        @if (isPremium) {
+
+          <div class="endpoint-section premium-section">
+
+
+            <div class="section-title">
+              Premium
+            </div>
+
+
+            <div class="endpoint-content">
+
+
+              <!-- PREMIUM ENDPOINT -->
+
+              <div class="form-group">
+
+                <label>
+                  Premium End Point
+                </label>
+
+                <input
+                  type="text"
+                  value="setPremFancyResultThreadCommon"
+                  placeholder="Premium End Point"
+                />
+
+              </div>
+
+
+              <!-- PREMIUM ROLLBACK -->
+
+              <div class="form-group">
+
+                <label>
+                  RollBack End Point
+                </label>
+
+                <input
+                  type="text"
+                  value="rollbackCommonPremFancyResult"
+                  placeholder="RollBack End Point"
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+        }
+
+
+        <!-- ================================================= -->
+        <!-- SHOW RESULT SECTION -->
+        <!-- ================================================= -->
+
+        @if (isShowResult) {
+
+          <div class="endpoint-section result-section">
+
+
+            <div class="section-title">
+              Show Result
+            </div>
+
+
+            <div class="endpoint-content">
+
+
+              <!-- SHOW RESULT ENDPOINT -->
+
+              <div class="form-group">
+
+                <label>
+                  Show Result End Point
+                </label>
+
+                <input
+                  type="text"
+                  placeholder="Show Result End Point"
+                />
+
+              </div>
+
+
+              <!-- SHOW RESULT ROLLBACK -->
+
+              <div class="form-group">
+
+                <label>
+                  RollBack End Point
+                </label>
+
+                <input
+                  type="text"
+                  placeholder="RollBack End Point"
+                />
+
+              </div>
+
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+
+      <!-- ================================================= -->
+      <!-- MODAL FOOTER -->
+      <!-- ================================================= -->
+
+      <div class="modal-footer">
+
+
+        <!-- CANCEL -->
+
+        <button
+          class="cancel-btn"
+          (click)="closePopup()"
+        >
+          Cancel
+        </button>
+
+
+        <!-- SAVE -->
+
+        <button
+          class="save-btn"
+          (click)="addWebsite()"
+        >
+          + Add Website
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+}
