@@ -96,15 +96,45 @@ export class DomainWhitelisting implements OnInit {
   // FILTER BUTTON
   // ==========================================
 
-  filterWebsites(filter: WebsiteFilter): void {
+ filterWebsites(filter: WebsiteFilter): void {
 
-    // Update selected button
-    this.selectedFilter = filter;
+  this.selectedFilter = filter;
 
-    // Apply filter immediately
-    this.applyFilter(filter);
+  if (filter === 'unregistered') {
 
+    this.api.getUnregisteredWebsites().subscribe({
+
+      next: (response: any) => {
+
+        console.log(
+          'Unregistered Websites:',
+          response?.data
+        );
+
+        this.filteredWebsites = response?.data ?? [];
+
+      },
+
+      error: (error) => {
+
+        console.error(
+          'Error loading unregistered websites:',
+          error
+        );
+
+        this.filteredWebsites = [];
+
+      }
+
+    });
+
+    return;
   }
+
+  // Baaki filters ka existing logic same
+  this.applyFilter(filter);
+
+}
 
 
   // ==========================================
@@ -151,6 +181,8 @@ export class DomainWhitelisting implements OnInit {
           website.type.includes('showResult')
       );
 
+      console.log('Filtered Show Result Websites:', this.filteredWebsites);
+
       return;
     }
 
@@ -164,8 +196,9 @@ export class DomainWhitelisting implements OnInit {
       this.filteredWebsites = this.websites.filter(
         website =>
           website.isRegistered === false &&
-          website.isDeleted === false
+          website.isDeleted === true
       );
+
 
       return;
     }
@@ -256,8 +289,40 @@ export class DomainWhitelisting implements OnInit {
 
   unregisterWebsite(website: any): void {
 
-    console.log('Unregister:', website);
-
+  if (!website?._id) {
+    console.error('Website ID not found');
+    return;
   }
+
+  console.log(
+    'Unregistering website:',
+    website._id
+  );
+
+  this.api.unregisterWebsite(website._id).subscribe({
+
+    next: (response: any) => {
+
+      console.log(
+        'Unregister response:',
+        response
+      );
+
+      // API ke baad latest data reload
+      this.loadWebsites();
+
+    },
+
+    error: (error) => {
+
+      console.error(
+        'Error unregistering website:',
+        error
+      );
+
+    }
+
+  });
+}
 
 }

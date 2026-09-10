@@ -1,6 +1,7 @@
 const Website = require("../models/website.model");
 
 
+// ADD WEBSITE
 const addWebsite = async (data) => {
   const {
     websiteName,
@@ -29,13 +30,15 @@ const addWebsite = async (data) => {
     premium: {
       enabled: premium?.enabled === true,
       endpoint: premium?.endpoint?.trim() || "",
-      rollbackEndpoint: premium?.rollbackEndpoint?.trim() || "",
+      rollbackEndpoint:
+        premium?.rollbackEndpoint?.trim() || "",
     },
 
     showResult: {
       enabled: showResult?.enabled === true,
       endpoint: showResult?.endpoint?.trim() || "",
-      rollbackEndpoint: showResult?.rollbackEndpoint?.trim() || "",
+      rollbackEndpoint:
+        showResult?.rollbackEndpoint?.trim() || "",
     },
 
     isAutoResult: isAutoResult === true,
@@ -49,6 +52,7 @@ const addWebsite = async (data) => {
 };
 
 
+// GET WEBSITES
 const getWebsites = async (type = "all") => {
   let filter = {};
 
@@ -92,7 +96,20 @@ const getWebsites = async (type = "all") => {
 };
 
 
+// GET UNREGISTERED WEBSITES
+const getUnregisteredWebsites = async () => {
+  const websites = await Website.find({
+    isDeleted: true,
+    isRegistered: false,
+  }).sort({
+    createdAt: -1,
+  });
 
+  return websites;
+};
+
+
+// GET WEBSITE BY ID
 const getWebsiteById = async (id) => {
   const website = await Website.findById(id);
 
@@ -101,15 +118,15 @@ const getWebsiteById = async (id) => {
 
 
 // UPDATE WEBSITE
-
 const updateWebsite = async (id, data) => {
-
   const website = await Website.findById(id);
 
   if (!website) {
     return null;
   }
 
+
+  // WEBSITE NAME
   if (data.websiteName !== undefined) {
 
     if (!data.websiteName.trim()) {
@@ -120,6 +137,8 @@ const updateWebsite = async (id, data) => {
       data.websiteName.trim();
   }
 
+
+  // DOMAIN URL
   if (data.domainUrl !== undefined) {
 
     if (!data.domainUrl.trim()) {
@@ -142,6 +161,7 @@ const updateWebsite = async (id, data) => {
   }
 
 
+  // WEBSITE TYPE
   if (data.type !== undefined) {
 
     if (!Array.isArray(data.type)) {
@@ -167,6 +187,7 @@ const updateWebsite = async (id, data) => {
   }
 
 
+  // PREMIUM
   if (data.premium !== undefined) {
 
     const premiumEnabled =
@@ -197,17 +218,22 @@ const updateWebsite = async (id, data) => {
 
     website.premium = {
       enabled: premiumEnabled,
+
       endpoint:
         data.premium.endpoint?.trim() || "",
+
       rollbackEndpoint:
         data.premium.rollbackEndpoint?.trim() || "",
     };
   }
 
+
+  // SHOW RESULT
   if (data.showResult !== undefined) {
 
     const showResultEnabled =
       data.showResult.enabled === true;
+
 
     if (showResultEnabled) {
 
@@ -233,16 +259,17 @@ const updateWebsite = async (id, data) => {
 
     website.showResult = {
       enabled: showResultEnabled,
+
       endpoint:
         data.showResult.endpoint?.trim() || "",
+
       rollbackEndpoint:
         data.showResult.rollbackEndpoint?.trim() || "",
     };
   }
 
 
-  // AUTO RESULT UPDATE
-
+  // AUTO RESULT
   if (data.isAutoResult !== undefined) {
 
     website.isAutoResult =
@@ -258,7 +285,6 @@ const updateWebsite = async (id, data) => {
 
 // UNREGISTER WEBSITE
 // SOFT DELETE
-
 const unregisterWebsite = async (id) => {
   const website = await Website.findById(id);
 
@@ -267,6 +293,7 @@ const unregisterWebsite = async (id) => {
   }
 
   website.isRegistered = false;
+
   website.isDeleted = true;
 
   await website.save();
@@ -276,7 +303,6 @@ const unregisterWebsite = async (id) => {
 
 
 // REGISTER WEBSITE AGAIN
-
 const registerWebsite = async (id) => {
   const website = await Website.findById(id);
 
@@ -285,6 +311,7 @@ const registerWebsite = async (id) => {
   }
 
   website.isRegistered = true;
+
   website.isDeleted = false;
 
   await website.save();
@@ -293,10 +320,10 @@ const registerWebsite = async (id) => {
 };
 
 
-
 module.exports = {
   addWebsite,
   getWebsites,
+  getUnregisteredWebsites,
   getWebsiteById,
   updateWebsite,
   unregisterWebsite,

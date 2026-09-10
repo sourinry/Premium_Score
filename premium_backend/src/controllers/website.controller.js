@@ -1,6 +1,7 @@
 const websiteService = require("../services/website.service");
-const Website = require("../models/website.model");
 
+
+// ADD WEBSITE
 const addWebsite = async (req, res) => {
   try {
     const {
@@ -11,6 +12,8 @@ const addWebsite = async (req, res) => {
       isAutoResult,
     } = req.body;
 
+
+    // WEBSITE NAME VALIDATION
     if (!websiteName || !websiteName.trim()) {
       return res.status(400).json({
         success: false,
@@ -18,6 +21,8 @@ const addWebsite = async (req, res) => {
       });
     }
 
+
+    // DOMAIN URL VALIDATION
     if (!domainUrl || !domainUrl.trim()) {
       return res.status(400).json({
         success: false,
@@ -25,8 +30,8 @@ const addWebsite = async (req, res) => {
       });
     }
 
-    // PREMIUM VALIDATION
 
+    // PREMIUM VALIDATION
     if (premium?.enabled === true) {
 
       if (!premium.endpoint || !premium.endpoint.trim()) {
@@ -49,7 +54,6 @@ const addWebsite = async (req, res) => {
 
 
     // SHOW RESULT VALIDATION
-
     if (showResult?.enabled === true) {
 
       if (!showResult.endpoint || !showResult.endpoint.trim()) {
@@ -70,7 +74,9 @@ const addWebsite = async (req, res) => {
       }
     }
 
+
     const website = await websiteService.addWebsite(req.body);
+
 
     return res.status(201).json({
       success: true,
@@ -91,9 +97,10 @@ const addWebsite = async (req, res) => {
 
 
 
-
+// GET WEBSITES
 const getWebsites = async (req, res) => {
   try {
+
     const { type = "all" } = req.query;
 
     const allowedTypes = [
@@ -103,6 +110,7 @@ const getWebsites = async (req, res) => {
       "unregistered",
     ];
 
+
     if (!allowedTypes.includes(type)) {
       return res.status(400).json({
         success: false,
@@ -111,14 +119,18 @@ const getWebsites = async (req, res) => {
       });
     }
 
+
     const websites = await websiteService.getWebsites(type);
+
 
     return res.status(200).json({
       success: true,
       count: websites.length,
       data: websites,
     });
+
   } catch (error) {
+
     console.error("Get websites error:", error);
 
     return res.status(500).json({
@@ -129,12 +141,46 @@ const getWebsites = async (req, res) => {
 };
 
 
+
+// GET UNREGISTERED WEBSITES
+const getUnregisteredWebsites = async (req, res) => {
+  try {
+
+    const websites =
+      await websiteService.getUnregisteredWebsites();
+
+
+    return res.status(200).json({
+      success: true,
+      count: websites.length,
+      data: websites,
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Get unregistered websites error:",
+      error
+    );
+
+
+    return res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+
+
+// GET WEBSITE BY ID
 const getWebsiteById = async (req, res) => {
   try {
 
-    const website = await websiteService.getWebsiteById(
-      req.params.id
-    );
+    const website =
+      await websiteService.getWebsiteById(
+        req.params.id
+      );
 
 
     if (!website) {
@@ -152,7 +198,11 @@ const getWebsiteById = async (req, res) => {
 
   } catch (error) {
 
-    console.error("Get website by id error:", error);
+    console.error(
+      "Get website by id error:",
+      error
+    );
+
 
     return res.status(500).json({
       success: false,
@@ -162,16 +212,17 @@ const getWebsiteById = async (req, res) => {
 };
 
 
-// UPDATE WEBSITE
 
 // UPDATE WEBSITE
-
 const updateWebsite = async (req, res) => {
   try {
-    const website = await websiteService.updateWebsite(
-      req.params.id,
-      req.body
-    );
+
+    const website =
+      await websiteService.updateWebsite(
+        req.params.id,
+        req.body
+      );
+
 
     if (!website) {
       return res.status(404).json({
@@ -179,6 +230,7 @@ const updateWebsite = async (req, res) => {
         message: "Website not found",
       });
     }
+
 
     return res.status(200).json({
       success: true,
@@ -187,7 +239,12 @@ const updateWebsite = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Update website error:", error);
+
+    console.error(
+      "Update website error:",
+      error
+    );
+
 
     return res.status(500).json({
       success: false,
@@ -197,15 +254,16 @@ const updateWebsite = async (req, res) => {
 };
 
 
+
 // UNREGISTER WEBSITE
 // SOFT DELETE
-
 const unregisterWebsite = async (req, res) => {
   try {
 
-    const website = await websiteService.unregisterWebsite(
-      req.params.id
-    );
+    const website =
+      await websiteService.unregisterWebsite(
+        req.params.id
+      );
 
 
     if (!website) {
@@ -224,7 +282,11 @@ const unregisterWebsite = async (req, res) => {
 
   } catch (error) {
 
-    console.error("Unregister website error:", error);
+    console.error(
+      "Unregister website error:",
+      error
+    );
+
 
     return res.status(500).json({
       success: false,
@@ -234,14 +296,15 @@ const unregisterWebsite = async (req, res) => {
 };
 
 
-// REGISTER WEBSITE AGAIN
 
+// REGISTER WEBSITE AGAIN
 const registerWebsite = async (req, res) => {
   try {
 
-    const website = await websiteService.registerWebsite(
-      req.params.id
-    );
+    const website =
+      await websiteService.registerWebsite(
+        req.params.id
+      );
 
 
     if (!website) {
@@ -260,19 +323,26 @@ const registerWebsite = async (req, res) => {
 
   } catch (error) {
 
-    console.error("Register website error:", error);
+    console.error(
+      "Register website error:",
+      error
+    );
 
-    return res.status(500).json({
-      success: false,
-      message: error.message,
+
+    return res.status(200).json({
+      success: true,
+      message: "Website registered successfully",
+      data: website,
     });
   }
 };
 
 
+
 module.exports = {
   addWebsite,
   getWebsites,
+  getUnregisteredWebsites,
   getWebsiteById,
   updateWebsite,
   unregisterWebsite,

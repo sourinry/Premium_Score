@@ -6,21 +6,23 @@ import { HttpClient } from '@angular/common/http';
   providedIn: 'root',
 })
 export class Api {
-
   baseApiUrl = enviorment.baseApiUrl;
 
   constructor(private http: HttpClient) {}
 
   getWebsites(type: string) {
-
-    return this.http.get(
-      `${this.baseApiUrl}/websites`,
-      {
-        params: {
-          type
-        }
-      }
-    );
-
+    return this.http.get(`${this.baseApiUrl}/websites`, {
+      params: {
+        type,
+      },
+    });
   }
+
+  unregisterWebsite(websiteId: string) {
+    return this.http.patch(`${this.baseApiUrl}/websites/${websiteId}/unregister`, {});
+  }
+
+  getUnregisteredWebsites() {
+  return this.http.get(`${this.baseApiUrl}/websites/unregistered`);
+}
 }
