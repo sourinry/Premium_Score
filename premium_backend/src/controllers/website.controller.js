@@ -94,51 +94,46 @@ const addWebsite = async (req, res) => {
 
 
 
-const getWebsites = async (req, res) => {
-  try {
+const getWebsites = async (type = "all") => {
+  let filter = {};
 
-    const {
-      type = "all",
-    } = req.query;
-
-
-    // Allowed types
-    const allowedTypes = [
-      "all",
-      "premium",
-      "showResult",
-      "unregistered",
-    ];
-
-
-    // Check type
-    if (!allowedTypes.includes(type)) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Invalid type. Use all, premium, showResult or unregistered",
-      });
-    }
-
-
-    const websites = await websiteService.getWebsites(type);
-
-
-    return res.status(200).json({
-      success: true,
-      count: websites.length,
-      data: websites,
-    });
-
-  } catch (error) {
-
-    console.error("Get websites error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+  if (type === "all") {
+    filter = {
+      isDeleted: false,
+    };
   }
+
+  else if (type === "premium") {
+    filter = {
+      type: "premium",
+      isDeleted: false,
+    };
+  }
+
+  else if (type === "showResult") {
+    filter = {
+      type: "showResult",
+      isDeleted: false,
+    };
+  }
+
+  else if (type === "unregistered") {
+    filter = {
+      isDeleted: true,
+    };
+  }
+
+  else {
+    throw new Error(
+      "Invalid type. Use all, premium, showResult or unregistered"
+    );
+  }
+
+  const websites = await Website.find(filter).sort({
+    createdAt: -1,
+  });
+
+  return websites;
 };
 
 
