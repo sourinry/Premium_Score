@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Api } from '../../../services/api';
 
@@ -15,22 +15,29 @@ type WebsiteFilter =
   templateUrl: './domain-whitelisting.html',
   styleUrl: './domain-whitelisting.css',
 })
-export class DomainWhitelisting {
+export class DomainWhitelisting implements OnInit {
 
   constructor(private api: Api) {}
 
-  // =============================
-  // COMPONENT INITIALIZATION
-  // =============================
+  // ==========================================
+  // WEBSITE DATA
+  // ==========================================
 
-  ngOnInit() {
-    this.showListing('all');
-  }
+  websites: any[] = [];
+
+  filteredWebsites: any[] = [];
 
 
-  // =============================
-  // POPUP VARIABLES
-  // =============================
+  // ==========================================
+  // CURRENT FILTER
+  // ==========================================
+
+  selectedFilter: WebsiteFilter = 'all';
+
+
+  // ==========================================
+  // POPUP
+  // ==========================================
 
   showPopup = false;
 
@@ -39,144 +46,217 @@ export class DomainWhitelisting {
   isShowResult = false;
 
 
-  // =============================
-  // WEBSITE DATA
-  // =============================
+  // ==========================================
+  // INITIALIZATION
+  // ==========================================
 
-  websites: any[] = [];
+  ngOnInit(): void {
 
-  filteredWebsites: any[] = [];
+    this.loadWebsites();
 
-
-  // =============================
-  // CURRENT FILTER
-  // =============================
-
-  selectedFilter: WebsiteFilter = 'all';
-
-
-  // =============================
-  // OPEN ADD POPUP
-  // =============================
-
-  openAddPopup() {
-    this.showPopup = true;
   }
 
 
-  // =============================
-  // CLOSE ADD POPUP
-  // =============================
+  // ==========================================
+  // GET ALL WEBSITES
+  // ==========================================
 
-  closePopup() {
-    this.showPopup = false;
+  loadWebsites(): void {
 
-    this.isPremium = false;
-    this.isShowResult = false;
-  }
-
-
-  // =============================
-  // ADD WEBSITE
-  // =============================
-
-  addWebsite() {
-    console.log('Website added');
-
-    this.closePopup();
-  }
-
-
-  // =============================
-  // EDIT WEBSITE
-  // =============================
-
-  editWebsite(website: any) {
-    console.log('Edit:', website);
-  }
-
-
-  // =============================
-  // UNREGISTER WEBSITE
-  // =============================
-
-  unregisterWebsite(website: any) {
-    console.log('Unregister:', website);
-  }
-
-
-  // =============================
-  // GET WEBSITE LIST
-  // =============================
-
-  showListing(type: WebsiteFilter) {
-
-    console.log('Fetching websites for:', type);
-
-    this.api.getWebsites(type).subscribe({
+    this.api.getWebsites('all').subscribe({
 
       next: (response: any) => {
 
-        console.log('Website response:', response);
+        this.websites = response?.data ?? [];
 
-        this.websites = response.data || [];
-
-        console.log('Websites:', this.websites);
-
-        // API already returned filtered data
-        this.filteredWebsites = this.websites;
+        // Initially show all
+        this.applyFilter('all');
 
       },
 
       error: (error) => {
 
-        console.error('Error fetching websites:', error);
+        console.error(
+          'Error loading websites:',
+          error
+        );
 
         this.websites = [];
+
         this.filteredWebsites = [];
 
       }
 
     });
+
   }
 
 
-  // =============================
-  // FILTER WEBSITES
-  // =============================
+  // ==========================================
+  // FILTER BUTTON
+  // ==========================================
 
-  filterWebsites(filter: WebsiteFilter) {
+  filterWebsites(filter: WebsiteFilter): void {
 
-    // Update active button
+    // Update selected button
     this.selectedFilter = filter;
 
-    // Call backend with selected filter
-    this.showListing(filter);
+    // Apply filter immediately
+    this.applyFilter(filter);
+
   }
 
 
-  // =============================
+  // ==========================================
+  // APPLY FILTER
+  // ==========================================
+
+  private applyFilter(filter: WebsiteFilter): void {
+    // ------------------------------------------
+    // ALL
+    // ------------------------------------------
+
+    if (filter === 'all') {
+
+      this.filteredWebsites = [...this.websites];
+      return;
+    }
+
+
+    // ------------------------------------------
+    // PREMIUM
+    // ------------------------------------------
+
+    if (filter === 'premium') {
+
+      this.filteredWebsites = this.websites.filter(
+        website =>
+          Array.isArray(website.type) &&
+          website.type.includes('premium')
+      );
+
+      return;
+    }
+
+
+    // ------------------------------------------
+    // SHOW RESULT
+    // ------------------------------------------
+
+    if (filter === 'showResult') {
+
+      this.filteredWebsites = this.websites.filter(
+        website =>
+          Array.isArray(website.type) &&
+          website.type.includes('showResult')
+      );
+
+      return;
+    }
+
+
+    // ------------------------------------------
+    // UNREGISTERED
+    // ------------------------------------------
+
+    if (filter === 'unregistered') {
+
+      this.filteredWebsites = this.websites.filter(
+        website =>
+          website.isRegistered === false &&
+          website.isDeleted === false
+      );
+
+      return;
+    }
+
+  }
+
+
+  // ==========================================
   // PREMIUM COUNT
-  // =============================
+  // ==========================================
 
   getPremiumWebsiteCount(): number {
 
     return this.websites.filter(
-      website => website.type === 'Premium'
+      website =>
+        Array.isArray(website.type) &&
+        website.type.includes('premium')
     ).length;
 
   }
 
 
-  // =============================
+  // ==========================================
   // ACTIVE COUNT
-  // =============================
+  // ==========================================
 
   getActiveWebsiteCount(): number {
 
     return this.websites.filter(
-      website => website.status === 'Active'
+      website =>
+        website.isRegistered === true &&
+        website.isDeleted === false
     ).length;
+
+  }
+
+
+  // ==========================================
+  // POPUP
+  // ==========================================
+
+  openAddPopup(): void {
+
+    this.showPopup = true;
+
+  }
+
+
+  closePopup(): void {
+
+    this.showPopup = false;
+
+    this.isPremium = false;
+
+    this.isShowResult = false;
+
+  }
+
+
+  // ==========================================
+  // ADD WEBSITE
+  // ==========================================
+
+  addWebsite(): void {
+
+    this.closePopup();
+
+    // Reload data after adding
+    this.loadWebsites();
+
+  }
+
+
+  // ==========================================
+  // EDIT WEBSITE
+  // ==========================================
+
+  editWebsite(website: any): void {
+
+    console.log('Edit:', website);
+
+  }
+
+
+  // ==========================================
+  // UNREGISTER WEBSITE
+  // ==========================================
+
+  unregisterWebsite(website: any): void {
+
+    console.log('Unregister:', website);
 
   }
 

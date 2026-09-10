@@ -45,62 +45,61 @@
   <!-- FILTER BUTTONS -->
   <!-- ================================================= -->
 
-  <div class="filter-section">
+<div class="filter-section">
 
-    <!-- ALL -->
-
-    <button
-      class="filter-btn"
-      [class.active]="selectedFilter === 'all'"
-      (click)="filterWebsites('all')"
-    >
-      All
-    </button>
-
-
-    <!-- PREMIUM -->
-
-    <button
-      class="filter-btn"
-      [class.active]="selectedFilter === 'premium'"
-      (click)="filterWebsites('premium')"
-    >
-      Premium
-    </button>
+  <!-- ALL -->
+  <button
+    type="button"
+    class="filter-btn"
+    [class.active]="selectedFilter === 'all'"
+    (click)="filterWebsites('all')"
+  >
+    All
+  </button>
 
 
-    <!-- SHOW RESULT -->
-
-    <button
-      class="filter-btn"
-      [class.active]="selectedFilter === 'showResult'"
-      (click)="filterWebsites('showResult')"
-    >
-      Show Result
-    </button>
-
-
-    <!-- UNREGISTERED -->
-
-    <button
-      class="filter-btn"
-      [class.active]="selectedFilter === 'unregistered'"
-      (click)="filterWebsites('unregistered')"
-    >
-      UnRegistered Web
-    </button>
+  <!-- PREMIUM -->
+  <button
+    type="button"
+    class="filter-btn"
+    [class.active]="selectedFilter === 'premium'"
+    (click)="filterWebsites('premium')"
+  >
+    Premium
+  </button>
 
 
-    <!-- ALL BLOCK -->
+  <!-- SHOW RESULT -->
+  <button
+    type="button"
+    class="filter-btn"
+    [class.active]="selectedFilter === 'showResult'"
+    (click)="filterWebsites('showResult')"
+  >
+    Show Result
+  </button>
 
-    <button
-      class="block-btn"
-    >
-      All Block
-    </button>
 
-  </div>
+  <!-- UNREGISTERED -->
+  <button
+    type="button"
+    class="filter-btn"
+    [class.active]="selectedFilter === 'unregistered'"
+    (click)="filterWebsites('unregistered')"
+  >
+    UnRegistered Web
+  </button>
 
+
+  <!-- ALL BLOCK -->
+  <button
+    type="button"
+    class="block-btn"
+  >
+    All Block
+  </button>
+
+</div>
 
   <!-- ================================================= -->
   <!-- STATISTICS -->
@@ -224,233 +223,240 @@
     <!-- TABLE -->
     <!-- ================================================= -->
 
-    <div class="table-wrapper">
 
-      <table>
+<div class="table-wrapper">
 
+  <table>
 
-        <!-- TABLE HEAD -->
+    <!-- TABLE HEAD -->
+    <thead>
 
-        <thead>
+      <tr>
 
-          <tr>
+        <th>S.No</th>
 
-            <th>
-              S.No
-            </th>
+        <th>Website</th>
 
-            <th>
-              Website
-            </th>
+        <th>Domain URL</th>
 
-            <th>
-              Domain URL
-            </th>
+        <th>End Point</th>
 
-            <th>
-              End Point
-            </th>
+        <th>Type</th>
 
-            <th>
-              Type
-            </th>
+        <th>Status</th>
 
-            <th>
-              Status
-            </th>
+        <th>Action</th>
 
-            <th>
-              Action
-            </th>
+      </tr>
 
-          </tr>
+    </thead>
 
-        </thead>
 
+    <!-- TABLE BODY -->
+<tbody>
 
-        <!-- ================================================= -->
-        <!-- TABLE BODY -->
-        <!-- ================================================= -->
+  @for (
+    website of filteredWebsites;
+    track website._id;
+    let i = $index
+  ) {
 
-        <tbody>
+    <tr>
 
-          @for (
-            website of filteredWebsites;
-            track website._id;
-            let i = $index
-          ) {
+      <!-- S.NO -->
+      <td>
+        <span class="serial">
+          {{ i + 1 }}
+        </span>
+      </td>
 
-            <tr>
 
+      <!-- WEBSITE -->
+      <td>
 
-              <!-- S.NO -->
+        <div class="website-info">
 
-              <td>
+          <div class="website-logo">
+            {{
+              website.websiteName?.charAt(0)?.toUpperCase()
+            }}
+          </div>
 
-                <span class="serial">
-                  {{ i + 1 }}
-                </span>
+          <div>
 
-              </td>
+            <strong>
+              {{ website.websiteName }}
+            </strong>
 
+            <small>
+              {{
+                website.isRegistered
+                  ? 'Registered Website'
+                  : 'Unregistered Website'
+              }}
+            </small>
 
-              <!-- WEBSITE -->
+          </div>
 
-              <td>
+        </div>
 
-                <div class="website-info">
+      </td>
 
 
-                  <!-- WEBSITE LOGO -->
+      <!-- DOMAIN URL -->
+      <td>
 
-                  <div class="website-logo">
+        <span class="domain">
+          {{ website.domainUrl }}
+        </span>
 
-                    {{
-                      website.websiteName?.charAt(0)?.toUpperCase()
-                    }}
+      </td>
 
-                  </div>
 
+      <!-- ENDPOINT -->
+      <td>
 
-                  <!-- WEBSITE NAME -->
+        <span class="endpoint">
 
-                  <div>
+          @if (website.type?.includes('premium')) {
 
-                    <strong>
-                      {{ website.websiteName }}
-                    </strong>
-
-                    <small>
-                      Registered Website
-                    </small>
-
-                  </div>
-
-                </div>
-
-              </td>
-
-
-              <!-- DOMAIN URL -->
-
-              <td>
-
-                <span class="domain">
-                  {{ website.domainUrl }}
-                </span>
-
-              </td>
-
-
-              <!-- ENDPOINT -->
-
-              <td>
-
-                <span class="endpoint">
-                  {{ website.endpoint }}
-                </span>
-
-              </td>
-
-
-              <!-- TYPE -->
-
-              <td>
-
-                @if (website.type === 'Premium') {
-
-                  <span class="badge premium">
-                    ★ Premium
-                  </span>
-
-                }
-                @else {
-
-                  <span class="badge result">
-                    Show Result
-                  </span>
-
-                }
-
-              </td>
-
-
-              <!-- STATUS -->
-
-              <td>
-
-                <span class="status">
-
-                  <span class="status-dot"></span>
-
-                  {{ website.status }}
-
-                </span>
-
-              </td>
-
-
-              <!-- ACTION -->
-
-              <td>
-
-                <div class="actions">
-
-
-                  <!-- EDIT -->
-
-                  <button
-                    class="edit-btn"
-                    (click)="editWebsite(website)"
-                  >
-                    Edit
-                  </button>
-
-
-                  <!-- UNREGISTER -->
-
-                  <button
-                    class="delete-btn"
-                    (click)="unregisterWebsite(website)"
-                  >
-                    Unregister
-                  </button>
-
-                </div>
-
-              </td>
-
-            </tr>
+            {{ website.premium?.endpoint || '-' }}
 
           }
 
+          @else if (website.type?.includes('showResult')) {
 
-          <!-- ================================================= -->
-          <!-- EMPTY STATE -->
-          <!-- ================================================= -->
-
-          @if (filteredWebsites.length === 0) {
-
-            <tr>
-
-              <td
-                colspan="7"
-                class="empty"
-              >
-
-                No whitelisted websites found.
-
-              </td>
-
-            </tr>
+            {{ website.showResult?.endpoint || '-' }}
 
           }
 
-        </tbody>
+          @else {
 
-      </table>
+            -
 
-    </div>
+          }
+
+        </span>
+
+      </td>
+
+
+      <!-- TYPE -->
+      <td>
+
+        @if (website.type?.includes('premium')) {
+
+          <span class="badge premium">
+            ★ Premium
+          </span>
+
+        }
+
+        @else if (website.type?.includes('showResult')) {
+
+          <span class="badge result">
+            Show Result
+          </span>
+
+        }
+
+        @else {
+
+          <span class="badge result">
+            -
+          </span>
+
+        }
+
+      </td>
+
+
+      <!-- STATUS -->
+      <td>
+
+        <span
+          class="status"
+          [style.color]="
+            website.isRegistered && !website.isDeleted
+              ? '#16a34a'
+              : '#dc2626'
+          "
+        >
+
+          <span
+            class="status-dot"
+            [style.background]="
+              website.isRegistered && !website.isDeleted
+                ? '#22c55e'
+                : '#ef4444'
+            "
+          ></span>
+
+          {{
+            website.isRegistered && !website.isDeleted
+              ? 'Active'
+              : 'Unregistered'
+          }}
+
+        </span>
+
+      </td>
+
+
+      <!-- ACTION -->
+      <td>
+
+        <div class="actions">
+
+          <button
+            type="button"
+            class="edit-btn"
+            (click)="editWebsite(website)"
+          >
+            Edit
+          </button>
+
+
+          <button
+            type="button"
+            class="delete-btn"
+            (click)="unregisterWebsite(website)"
+          >
+            Unregister
+          </button>
+
+        </div>
+
+      </td>
+
+    </tr>
+
+  }
+
+
+  <!-- EMPTY STATE -->
+  @if (filteredWebsites.length === 0) {
+
+    <tr>
+
+      <td
+        colspan="7"
+        class="empty"
+      >
+        No whitelisted websites found.
+      </td>
+
+    </tr>
+
+  }
+
+</tbody>
+
+  </table>
+
+</div>
+
+
 
   </div>
 
