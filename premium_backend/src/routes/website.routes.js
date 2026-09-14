@@ -12,34 +12,20 @@ const {
 
 const router = express.Router();
 
+console.log("🔥 WEBSITE ROUTE LOADED");
 
-// Add Website
 router.post("/", addWebsite);
 
-
-// Get Websites
-// type = all | premium | showResult | unregistered
 router.get("/", getWebsites);
 
-
-// Get UnRegistered Websites
 router.get("/unregistered", getUnregisteredWebsites);
 
-
-// Get Single Website
 router.get("/:id", getWebsiteById);
 
-
-// Update Website
 router.put("/:id", updateWebsite);
 
-
-// Unregister Website - Soft Delete
 router.patch("/:id/unregister", unregisterWebsite);
 
-
-// Register Website Again
 router.patch("/:id/register", registerWebsite);
-
 
 module.exports = router;

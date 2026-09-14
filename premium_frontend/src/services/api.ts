@@ -26,7 +26,17 @@ export class Api {
   return this.http.get(`${this.baseApiUrl}/websites/unregistered`);
 }
 
-  registerWebsite(websiteId: string) {
-    return this.http.patch(`${this.baseApiUrl}/websites/${websiteId}/register`, {});
-  }
+addWebsite(payload: any) {
+  return this.http.post(
+    `${this.baseApiUrl}/websites`,
+    payload
+  );
+}
+
+updateWebsite(websiteId: string, payload: any) {
+  return this.http.put(
+    `${this.baseApiUrl}/websites/${websiteId}`,
+    payload
+  );
+}
 }

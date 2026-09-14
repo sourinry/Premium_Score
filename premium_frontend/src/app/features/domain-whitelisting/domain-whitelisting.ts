@@ -1,12 +1,9 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Api } from '../../../services/api';
+import { ToastrService } from 'ngx-toastr';
 
-type WebsiteFilter =
-  | 'all'
-  | 'premium'
-  | 'showResult'
-  | 'unregistered';
+type WebsiteFilter = 'all' | 'premium' | 'showResult' | 'unregistered';
 
 @Component({
   selector: 'app-domain-whitelisting',
@@ -16,47 +13,70 @@ type WebsiteFilter =
   styleUrl: './domain-whitelisting.css',
 })
 export class DomainWhitelisting implements OnInit {
+  websiteName = '';
+  domainUrl = '';
 
-  private api = inject(Api);
+  premiumEndpoint = 'setPremFancyResultThreadCommon';
+  premiumRollbackEndpoint = 'rollbackCommonPremFancyResult';
 
-  // Data
+  showResultEndpoint = 'showResult';
+  showResultRollbackEndpoint = 'rollbackShowResult';
+
+  isAutoResult = false;
+
+  // Edit mode
+  isEditMode = false;
+  editingWebsiteId: string | null = null;
+
+  constructor(
+    private api: Api,
+    private toastr: ToastrService,
+    private cdr: ChangeDetectorRef,
+  ) {}
+
+  // ==========================================
+  // WEBSITE DATA
+  // ==========================================
+
   websites: any[] = [];
-  unregisteredWebsites: any[] = [];
+
   filteredWebsites: any[] = [];
 
-  // Filter & search
+  // ==========================================
+  // CURRENT FILTER
+  // ==========================================
+
   selectedFilter: WebsiteFilter = 'all';
-  searchTerm = '';
 
-  // Loading state
-  processingWebsiteIds = new Set<string>();
+  // ==========================================
+  // POPUP
+  // ==========================================
 
-  // Count
-  unRegistredCount = 0;
-
-  // Popup
   showPopup = false;
+
   isPremium = false;
+
   isShowResult = false;
+
+  // ==========================================
+  // INITIALIZATION
+  // ==========================================
 
   ngOnInit(): void {
     this.loadWebsites();
   }
 
   // ==========================================
-  // LOAD REGISTERED WEBSITES
+  // GET ALL WEBSITES
   // ==========================================
 
   loadWebsites(): void {
     this.api.getWebsites('all').subscribe({
       next: (response: any) => {
-        this.websites = Array.isArray(response?.data)
-          ? response.data
-          : [];
+        this.websites = response?.data ?? [];
 
-        if (this.selectedFilter !== 'unregistered') {
-          this.updateDisplayedWebsites();
-        }
+        // Initially show all
+        this.applyFilter('all');
       },
 
       error: (error) => {
@@ -64,148 +84,110 @@ export class DomainWhitelisting implements OnInit {
 
         this.websites = [];
 
-        if (this.selectedFilter !== 'unregistered') {
-          this.filteredWebsites = [];
-        }
-      }
-    });
-  }
-
-  // ==========================================
-  // LOAD UNREGISTERED WEBSITES
-  // ==========================================
-
-  loadUnregisteredWebsites(): void {
-    this.api.getUnregisteredWebsites().subscribe({
-      next: (response: any) => {
-
-        // Ignore response if user changed tab
-        if (this.selectedFilter !== 'unregistered') {
-          return;
-        }
-
-        this.unRegistredCount = response?.count ?? 0;
-
-        this.unregisteredWebsites =
-          Array.isArray(response?.data)
-            ? response.data
-            : [];
-
-        this.updateDisplayedWebsites();
-      },
-
-      error: (error) => {
-        console.error(
-          'Error loading unregistered websites:',
-          error
-        );
-
-        this.unregisteredWebsites = [];
         this.filteredWebsites = [];
-        this.unRegistredCount = 0;
-      }
+      },
     });
   }
 
   // ==========================================
-  // FILTER
+  // FILTER BUTTON
   // ==========================================
 
   filterWebsites(filter: WebsiteFilter): void {
     this.selectedFilter = filter;
-    this.filteredWebsites = [];
 
     if (filter === 'unregistered') {
-      this.loadUnregisteredWebsites();
+      this.api.getUnregisteredWebsites().subscribe({
+        next: (response: any) => {
+          console.log('Unregistered Websites:', response?.data);
+
+          this.filteredWebsites = response?.data ?? [];
+        },
+
+        error: (error) => {
+          console.error('Error loading unregistered websites:', error);
+
+          this.filteredWebsites = [];
+        },
+      });
+
       return;
     }
 
-    this.updateDisplayedWebsites();
+    // Baaki filters ka existing logic same
+    this.applyFilter(filter);
   }
 
   // ==========================================
-  // UPDATE DISPLAYED DATA
+  // APPLY FILTER
   // ==========================================
 
-  private updateDisplayedWebsites(): void {
-    let data: any[] = [];
+  private applyFilter(filter: WebsiteFilter): void {
+    // ------------------------------------------
+    // ALL
+    // ------------------------------------------
 
-    switch (this.selectedFilter) {
-
-      case 'all':
-        data = [...this.websites];
-        break;
-
-      case 'premium':
-        data = this.websites.filter(
-          website =>
-            Array.isArray(website.type) &&
-            website.type.includes('premium')
-        );
-        break;
-
-      case 'showResult':
-        data = this.websites.filter(
-          website =>
-            Array.isArray(website.type) &&
-            website.type.includes('showResult')
-        );
-        break;
-
-      case 'unregistered':
-        data = [...this.unregisteredWebsites];
-        break;
+    if (filter === 'all') {
+      this.filteredWebsites = [...this.websites];
+      return;
     }
 
-    this.filteredWebsites = this.filterBySearch(data);
-  }
+    // ------------------------------------------
+    // PREMIUM
+    // ------------------------------------------
 
-  // ==========================================
-  // SEARCH
-  // ==========================================
-
-  private filterBySearch(data: any[]): any[] {
-    const search = this.searchTerm.trim().toLowerCase();
-
-    if (!search) {
-      return data;
-    }
-
-    return data.filter(website => {
-      const websiteName =
-        website.websiteName?.toString().toLowerCase() ?? '';
-
-      const domainUrl =
-        website.domainUrl?.toString().toLowerCase() ?? '';
-
-      return (
-        websiteName.includes(search) ||
-        domainUrl.includes(search)
+    if (filter === 'premium') {
+      this.filteredWebsites = this.websites.filter(
+        (website) => Array.isArray(website.type) && website.type.includes('premium'),
       );
-    });
-  }
 
-  onSearch(): void {
-    this.updateDisplayedWebsites();
+      return;
+    }
+
+    // ------------------------------------------
+    // SHOW RESULT
+    // ------------------------------------------
+
+    if (filter === 'showResult') {
+      this.filteredWebsites = this.websites.filter(
+        (website) => Array.isArray(website.type) && website.type.includes('showResult'),
+      );
+
+      console.log('Filtered Show Result Websites:', this.filteredWebsites);
+
+      return;
+    }
+
+    // ------------------------------------------
+    // UNREGISTERED
+    // ------------------------------------------
+
+    if (filter === 'unregistered') {
+      this.filteredWebsites = this.websites.filter(
+        (website) => website.isRegistered === false && website.isDeleted === true,
+      );
+
+      return;
+    }
   }
 
   // ==========================================
-  // COUNTS
+  // PREMIUM COUNT
   // ==========================================
 
   getPremiumWebsiteCount(): number {
     return this.websites.filter(
-      website =>
-        Array.isArray(website.type) &&
-        website.type.includes('premium')
+      (website) => Array.isArray(website.type) && website.type.includes('premium'),
     ).length;
   }
 
+  // ==========================================
+  // ACTIVE COUNT
+  // ==========================================
+
   getActiveWebsiteCount(): number {
     return this.websites.filter(
-      website =>
-        website.isRegistered === true &&
-        website.isDeleted === false
+      (website) => website.isRegistered === true && website.isDeleted === false,
     ).length;
   }
 
@@ -214,30 +196,188 @@ export class DomainWhitelisting implements OnInit {
   // ==========================================
 
   openAddPopup(): void {
+    this.isEditMode = false;
+    this.editingWebsiteId = null;
+
+    this.resetForm();
+
     this.showPopup = true;
   }
 
   closePopup(): void {
     this.showPopup = false;
-    this.isPremium = false;
-    this.isShowResult = false;
+
+    this.resetForm();
+    this.cdr.detectChanges();
   }
 
   // ==========================================
   // ADD WEBSITE
   // ==========================================
 
-  addWebsite(): void {
-    this.closePopup();
-    this.loadWebsites();
+  editWebsite(website: any): void {
+    if (!website?._id) {
+      console.error('Website ID not found');
+      return;
+    }
+
+    this.isEditMode = true;
+
+    this.editingWebsiteId = website._id;
+
+    // Website basic details
+    this.websiteName = website.websiteName ?? '';
+
+    this.domainUrl = website.domainUrl ?? '';
+
+    // Premium
+    this.isPremium = website.premium?.enabled === true || website.type?.includes('premium');
+
+    this.premiumEndpoint = website.premium?.endpoint ?? '';
+
+    this.premiumRollbackEndpoint = website.premium?.rollbackEndpoint ?? '';
+
+    // Show Result
+    this.isShowResult =
+      website.showResult?.enabled === true || website.type?.includes('showResult');
+
+    this.showResultEndpoint = website.showResult?.endpoint ?? '';
+
+    this.showResultRollbackEndpoint = website.showResult?.rollbackEndpoint ?? '';
+    // Auto Result
+    this.isAutoResult = website.isAutoResult === true;
+
+    this.showPopup = true;
   }
 
-  // ==========================================
-  // EDIT WEBSITE
-  // ==========================================
+  addWebsite(): void {
+    // -----------------------------------------
+    // VALIDATION
+    // -----------------------------------------
 
-  editWebsite(website: any): void {
-    console.log('Edit website:', website);
+    if (!this.websiteName.trim()) {
+      console.error('Website name is required');
+      return;
+    }
+
+    if (!this.domainUrl.trim()) {
+      console.error('Domain URL is required');
+      return;
+    }
+
+    // -----------------------------------------
+    // TYPE
+    // -----------------------------------------
+
+    const type: string[] = [];
+
+    if (this.isPremium) {
+      type.push('premium');
+    }
+
+    if (this.isShowResult) {
+      type.push('showResult');
+    }
+
+    // -----------------------------------------
+    // PAYLOAD
+    // -----------------------------------------
+
+    const payload = {
+      websiteName: this.websiteName.trim(),
+
+      domainUrl: this.domainUrl.trim(),
+
+      type: type,
+
+      premium: {
+        enabled: this.isPremium,
+
+        endpoint: this.isPremium ? this.premiumEndpoint.trim() : '',
+
+        rollbackEndpoint: this.isPremium ? this.premiumRollbackEndpoint.trim() : '',
+      },
+
+      showResult: {
+        enabled: this.isShowResult,
+
+        endpoint: this.isShowResult ? this.showResultEndpoint.trim() : '',
+
+        rollbackEndpoint: this.isShowResult ? this.showResultRollbackEndpoint.trim() : '',
+      },
+
+      isAutoResult: this.isAutoResult,
+    };
+
+    console.log('WEBSITE PAYLOAD:', payload);
+
+    // =========================================
+    // UPDATE
+    // =========================================
+
+    if (this.isEditMode && this.editingWebsiteId) {
+      this.api.updateWebsite(this.editingWebsiteId, payload).subscribe({
+        next: (response: any) => {
+          console.log('Website updated successfully:', response);
+          this.toastr.success('Website updated successfully', 'Success');
+          this.closePopup();
+
+          this.resetForm();
+
+          this.loadWebsites();
+        },
+
+        error: (error) => {
+          console.error('Error updating website:', error);
+        },
+      });
+
+      return;
+    }
+
+    // =========================================
+    // ADD
+    // =========================================
+
+    this.api.addWebsite(payload).subscribe({
+      next: (response: any) => {
+        console.log('Website added successfully:', response);
+        this.toastr.success('Website added successfully', 'Success');
+        this.closePopup();
+
+        this.resetForm();
+
+        this.loadWebsites();
+      },
+
+      error: (error) => {
+        console.error('Error adding website:', error);
+      },
+    });
+  }
+
+  resetForm(): void {
+    this.websiteName = '';
+
+    this.domainUrl = '';
+
+    this.isPremium = false;
+
+    this.isShowResult = false;
+
+    this.premiumEndpoint = 'setPremFancyResultThreadCommon';
+
+    this.premiumRollbackEndpoint = 'rollbackCommonPremFancyResult';
+
+    this.showResultEndpoint = 'showResult';
+
+    this.showResultRollbackEndpoint = 'rollbackShowResult';
+
+    this.isAutoResult = false;
+
+    this.isEditMode = false;
+
+    this.editingWebsiteId = null;
   }
 
   // ==========================================
@@ -245,74 +385,24 @@ export class DomainWhitelisting implements OnInit {
   // ==========================================
 
   unregisterWebsite(website: any): void {
-    const websiteId = website?._id;
-
-    if (!websiteId) {
+    if (!website?._id) {
       console.error('Website ID not found');
       return;
     }
 
-    if (this.processingWebsiteIds.has(websiteId)) {
-      return;
-    }
+    console.log('Unregistering website:', website._id);
 
-    this.processingWebsiteIds.add(websiteId);
+    this.api.unregisterWebsite(website._id).subscribe({
+      next: (response: any) => {
+        console.log('Unregister response:', response);
 
-    this.api.unregisterWebsite(websiteId).subscribe({
-      next: () => {
+        // API ke baad latest data reload
         this.loadWebsites();
       },
 
       error: (error) => {
-        console.error(
-          'Error unregistering website:',
-          error
-        );
+        console.error('Error unregistering website:', error);
       },
-
-      complete: () => {
-        this.processingWebsiteIds.delete(websiteId);
-      }
-    });
-  }
-
-  // ==========================================
-  // REGISTER WEBSITE
-  // ==========================================
-
-  registerWebsite(id: string): void {
-    if (!id) {
-      console.error('Website ID not found');
-      return;
-    }
-
-    if (this.processingWebsiteIds.has(id)) {
-      return;
-    }
-
-    this.processingWebsiteIds.add(id);
-
-    this.api.registerWebsite(id).subscribe({
-      next: () => {
-        // We are on Unregistered tab,
-        // so reload Unregistered data.
-        if (this.selectedFilter === 'unregistered') {
-          this.loadUnregisteredWebsites();
-        } else {
-          this.loadWebsites();
-        }
-      },
-
-      error: (error) => {
-        console.error(
-          'Error registering website:',
-          error
-        );
-      },
-
-      complete: () => {
-        this.processingWebsiteIds.delete(id);
-      }
     });
   }
 }
