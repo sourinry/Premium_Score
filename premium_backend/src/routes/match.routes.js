@@ -8,32 +8,8 @@ const {
 
 const router = express.Router();
 
-// =====================================================
-// CURRENT MATCHES
-// =====================================================
-
-router.get(
-  "/",
-  getMatches
-);
-
-// =====================================================
-// OLD MATCHES
-// IMPORTANT: /old MUST BE BEFORE /:eventId
-// =====================================================
-
-router.get(
-  "/old",
-  getOldMatches
-);
-
-// =====================================================
-// SINGLE MATCH
-// =====================================================
-
-router.get(
-  "/:eventId",
-  getMatchById
-);
+router.get("/", getMatches);
+router.get("/old", getOldMatches);
+router.get("/:eventId", getMatchById);
 
 module.exports = router;
