@@ -95,9 +95,7 @@ const getMatches = async (filters = {}) => {
   }
 };
 
-module.exports = {
-  getMatches,
-};
+
 
 const getOldMatches = async (filters = {}) => {
   try {
