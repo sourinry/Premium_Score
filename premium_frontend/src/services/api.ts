@@ -45,9 +45,10 @@ matchListApi(payload: any) {
     `${this.baseApiUrl}/matches`,
     {
       params: {
+        sportId: String(payload.sportId),
         page: String(payload.page),
         limit: String(payload.limit),
-        sportId: String(payload.sportId)
+       
       }
     }
   );

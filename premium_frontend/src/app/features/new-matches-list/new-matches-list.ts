@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Api } from '../../../services/api';
 import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs';
+
 @Component({
   selector: 'app-new-matches-list',
   standalone: true,
@@ -19,10 +20,23 @@ export class NewMatchesList implements OnInit {
   // ==========================================
   // SPORT
   // ==========================================
-
+  Math = Math;
   selectedSport = 'Cricket';
 
   sportsValue = '';
+
+
+  // ==========================================
+  // PAGINATION
+  // ==========================================
+
+  currentPage = 1;
+
+  pageSize = 10;
+
+  totalItems = 0;
+
+  totalPages = 0;
 
 
   // ==========================================
@@ -40,26 +54,12 @@ export class NewMatchesList implements OnInit {
 
 
   // ==========================================
-  // PAGINATION
-  // ==========================================
-
-  currentPage = 1;
-
-  pageSize = 25;
-
-  totalItems = 0;
-
-  totalPages = 0;
-
-  pageSizeOptions = [10, 25, 50, 100];
-
-
-  // ==========================================
   // CONSTRUCTOR
   // ==========================================
 
   constructor(
     private apiService: Api,
+
     @Inject(ToastrService)
     private toastr: ToastrService
   ) {}
@@ -78,108 +78,137 @@ export class NewMatchesList implements OnInit {
   // LOAD MATCHES
   // ==========================================
 
-loadMatches(): void {
+  loadMatches(): void {
 
-  const sportMap: { [key: string]: string } = {
-    Cricket: '4',
-    Soccer: '1',
-    Tennis: '2'
-  };
+    const sportMap: { [key: string]: string } = {
+      Cricket: '4',
+      Soccer: '1',
+      Tennis: '2'
+    };
 
-  this.sportsValue = sportMap[this.selectedSport];
+    this.sportsValue = sportMap[this.selectedSport];
 
-  const payload = {
-    page: this.currentPage,
-    limit: this.pageSize,
-    sportId: this.sportsValue
-  };
+    const payload = {
+      page: this.currentPage,
+      limit: this.pageSize,
+      sportId: +(this.sportsValue)
+    };
 
-  console.log('REQUEST:', payload);
 
-  this.isLoading = true;
 
-  this.apiService
-    .matchListApi(payload)
-    .pipe(
-      finalize(() => {
-        console.log('LOADING FALSE');
+    console.log('================================');
+    console.log('REQUEST:', payload);
+    console.log('================================');
 
-        this.isLoading = false;
-      })
-    )
-    .subscribe({
+    this.isLoading = true;
 
-      next: (response: any) => {
+    this.apiService
+      .matchListApi(payload)
+      .pipe(
+        finalize(() => {
 
-        console.log('API RESPONSE:', response);
+          this.isLoading = false;
 
-        // =====================================
-        // MATCH DATA
-        // =====================================
+          console.log(
+            'LOADING FINISHED:',
+            this.isLoading
+          );
 
-        if (Array.isArray(response?.data)) {
-          this.matches = response.data;
-        } else {
+        })
+      )
+      .subscribe({
+
+        next: (response: any) => {
+
+          console.log(
+            'FULL API RESPONSE:',
+            response
+          );
+
+
+          // ==========================================
+          // MATCH DATA
+          // ==========================================
+
+          if (Array.isArray(response?.data)) {
+
+            this.matches = response.data;
+
+          } else {
+
+            this.matches = [];
+
+          }
+
+
+          // ==========================================
+          // PAGINATION
+          // ==========================================
+
+          /*
+           * Adjust these fields according to your
+           * actual API response.
+           */
+
+          this.totalItems =
+            response?.total ??
+            response?.pagination?.total ??
+            response?.meta?.total ??
+            0;
+
+
+          this.totalPages =
+            Math.ceil(
+              this.totalItems / this.pageSize
+            );
+
+
+          console.log(
+            'TABLE MATCHES:',
+            this.matches
+          );
+
+          console.log(
+            'MATCH COUNT:',
+            this.matches.length
+          );
+
+          console.log(
+            'TOTAL ITEMS:',
+            this.totalItems
+          );
+
+          console.log(
+            'TOTAL PAGES:',
+            this.totalPages
+          );
+
+        },
+
+
+        error: (error: any) => {
+
+          console.error(
+            'MATCH API ERROR:',
+            error
+          );
+
           this.matches = [];
+
+          this.totalItems = 0;
+
+          this.totalPages = 0;
+
+          this.toastr.error(
+            'Failed to load matches',
+            'Error'
+          );
+
         }
 
+      });
 
-        // =====================================
-        // PAGINATION
-        // =====================================
-
-        this.totalItems =
-          Number(response?.total ?? 0);
-
-        this.currentPage =
-          Number(
-            response?.page ?? this.currentPage
-          );
-
-        this.pageSize =
-          Number(
-            response?.limit ?? this.pageSize
-          );
-
-        this.totalPages =
-          Number(
-            response?.totalPages ?? 0
-          );
-
-
-        console.log('MATCH COUNT:', this.matches.length);
-        console.log('TOTAL:', this.totalItems);
-        console.log('PAGE:', this.currentPage);
-        console.log('LIMIT:', this.pageSize);
-        console.log('TOTAL PAGES:', this.totalPages);
-
-      },
-
-      error: (error: any) => {
-
-        console.error(
-          'MATCH API ERROR:',
-          error
-        );
-
-        this.matches = [];
-
-        this.totalItems = 0;
-
-        this.totalPages = 0;
-
-        this.toastr.error(
-          'Failed to load matches',
-          'Error'
-        );
-
-      }
-
-    });
-
-}
-
-
+  }
 
 
   // ==========================================
@@ -188,42 +217,14 @@ loadMatches(): void {
 
   selectSport(sport: string): void {
 
+    // Change sport
     this.selectedSport = sport;
 
-    // Sport change par first page
+    // Important:
+    // When changing sport, go back to page 1
     this.currentPage = 1;
 
-    this.loadMatches();
-
-  }
-
-
-  // ==========================================
-  // REFRESH
-  // ==========================================
-
-  refreshMatches(): void {
-
-    this.loadMatches();
-
-  }
-
-
-  // ==========================================
-  // CHANGE PAGE SIZE
-  // ==========================================
-
-  changePageSize(): void {
-
-    console.log(
-      'PAGE SIZE CHANGED:',
-      this.pageSize
-    );
-
-    // Page size change hone par
-    // hamesha first page par jao
-    this.currentPage = 1;
-
+    // Load matches for selected sport
     this.loadMatches();
 
   }
@@ -235,36 +236,16 @@ loadMatches(): void {
 
   changePage(page: number): void {
 
-    if (page < 1) {
-      return;
-    }
-
-    if (page > this.totalPages) {
-      return;
-    }
-
-    if (page === this.currentPage) {
+    // Prevent invalid pages
+    if (
+      page < 1 ||
+      page > this.totalPages ||
+      page === this.currentPage
+    ) {
       return;
     }
 
     this.currentPage = page;
-
-    this.loadMatches();
-
-  }
-
-
-  // ==========================================
-  // FIRST PAGE
-  // ==========================================
-
-  firstPage(): void {
-
-    if (this.currentPage === 1) {
-      return;
-    }
-
-    this.currentPage = 1;
 
     this.loadMatches();
 
@@ -277,13 +258,13 @@ loadMatches(): void {
 
   previousPage(): void {
 
-    if (this.currentPage <= 1) {
-      return;
+    if (this.currentPage > 1) {
+
+      this.currentPage--;
+
+      this.loadMatches();
+
     }
-
-    this.currentPage--;
-
-    this.loadMatches();
 
   }
 
@@ -294,31 +275,27 @@ loadMatches(): void {
 
   nextPage(): void {
 
-    if (this.currentPage >= this.totalPages) {
-      return;
+    if (this.currentPage < this.totalPages) {
+
+      this.currentPage++;
+
+      this.loadMatches();
+
     }
-
-    this.currentPage++;
-
-    this.loadMatches();
 
   }
 
 
   // ==========================================
-  // LAST PAGE
+  // CHANGE PAGE SIZE
   // ==========================================
 
-  lastPage(): void {
+  changePageSize(): void {
 
-    if (
-      this.currentPage === this.totalPages ||
-      this.totalPages === 0
-    ) {
-      return;
-    }
+    // When page size changes,
+    // start again from page 1
 
-    this.currentPage = this.totalPages;
+    this.currentPage = 1;
 
     this.loadMatches();
 
@@ -331,14 +308,8 @@ loadMatches(): void {
 
   getPages(): number[] {
 
-    if (this.totalPages <= 0) {
-      return [];
-    }
-
     return Array.from(
-      {
-        length: this.totalPages
-      },
+      { length: this.totalPages },
       (_, index) => index + 1
     );
 
@@ -346,47 +317,12 @@ loadMatches(): void {
 
 
   // ==========================================
-  // START ITEM
+  // REFRESH
   // ==========================================
 
-  getStartItem(): number {
+  refreshMatches(): void {
 
-    if (this.totalItems === 0) {
-      return 0;
-    }
-
-    return (
-      (this.currentPage - 1) *
-      this.pageSize
-    ) + 1;
-
-  }
-
-
-  // ==========================================
-  // END ITEM
-  // ==========================================
-
-  getEndItem(): number {
-
-    return Math.min(
-      this.currentPage * this.pageSize,
-      this.totalItems
-    );
-
-  }
-
-
-  // ==========================================
-  // SERIAL NUMBER
-  // ==========================================
-
-  getSerialNumber(index: number): number {
-
-    return (
-      (this.currentPage - 1) *
-      this.pageSize
-    ) + index + 1;
+    this.loadMatches();
 
   }
 
@@ -410,16 +346,6 @@ loadMatches(): void {
           id !== undefined &&
           String(id).trim() !== ''
       );
-
-    }
-
-    if (
-      marketId === null ||
-      marketId === undefined ||
-      String(marketId).trim() === ''
-    ) {
-
-      return [];
 
     }
 
