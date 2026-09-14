@@ -20,10 +20,23 @@ export class NewMatchesList implements OnInit {
   // ==========================================
   // SPORT
   // ==========================================
-
+  Math = Math;
   selectedSport = 'Cricket';
 
   sportsValue = '';
+
+
+  // ==========================================
+  // PAGINATION
+  // ==========================================
+
+  currentPage = 1;
+
+  pageSize = 10;
+
+  totalItems = 0;
+
+  totalPages = 0;
 
 
   // ==========================================
@@ -46,6 +59,7 @@ export class NewMatchesList implements OnInit {
 
   constructor(
     private apiService: Api,
+
     @Inject(ToastrService)
     private toastr: ToastrService
   ) {}
@@ -72,12 +86,15 @@ export class NewMatchesList implements OnInit {
       Tennis: '2'
     };
 
-    this.sportsValue =
-      sportMap[this.selectedSport];
+    this.sportsValue = sportMap[this.selectedSport];
 
     const payload = {
-      sportId: this.sportsValue
+      page: this.currentPage,
+      limit: this.pageSize,
+      sportId: +(this.sportsValue)
     };
+
+    
 
     console.log('================================');
     console.log('REQUEST:', payload);
@@ -108,6 +125,7 @@ export class NewMatchesList implements OnInit {
             response
           );
 
+
           // ==========================================
           // MATCH DATA
           // ==========================================
@@ -122,6 +140,29 @@ export class NewMatchesList implements OnInit {
 
           }
 
+
+          // ==========================================
+          // PAGINATION
+          // ==========================================
+
+          /*
+           * Adjust these fields according to your
+           * actual API response.
+           */
+
+          this.totalItems =
+            response?.total ??
+            response?.pagination?.total ??
+            response?.meta?.total ??
+            0;
+
+
+          this.totalPages =
+            Math.ceil(
+              this.totalItems / this.pageSize
+            );
+
+
           console.log(
             'TABLE MATCHES:',
             this.matches
@@ -130,6 +171,16 @@ export class NewMatchesList implements OnInit {
           console.log(
             'MATCH COUNT:',
             this.matches.length
+          );
+
+          console.log(
+            'TOTAL ITEMS:',
+            this.totalItems
+          );
+
+          console.log(
+            'TOTAL PAGES:',
+            this.totalPages
           );
 
         },
@@ -143,6 +194,10 @@ export class NewMatchesList implements OnInit {
           );
 
           this.matches = [];
+
+          this.totalItems = 0;
+
+          this.totalPages = 0;
 
           this.toastr.error(
             'Failed to load matches',
@@ -162,9 +217,101 @@ export class NewMatchesList implements OnInit {
 
   selectSport(sport: string): void {
 
+    // Change sport
     this.selectedSport = sport;
 
+    // Important:
+    // When changing sport, go back to page 1
+    this.currentPage = 1;
+
+    // Load matches for selected sport
     this.loadMatches();
+
+  }
+
+
+  // ==========================================
+  // CHANGE PAGE
+  // ==========================================
+
+  changePage(page: number): void {
+
+    // Prevent invalid pages
+    if (
+      page < 1 ||
+      page > this.totalPages ||
+      page === this.currentPage
+    ) {
+      return;
+    }
+
+    this.currentPage = page;
+
+    this.loadMatches();
+
+  }
+
+
+  // ==========================================
+  // PREVIOUS PAGE
+  // ==========================================
+
+  previousPage(): void {
+
+    if (this.currentPage > 1) {
+
+      this.currentPage--;
+
+      this.loadMatches();
+
+    }
+
+  }
+
+
+  // ==========================================
+  // NEXT PAGE
+  // ==========================================
+
+  nextPage(): void {
+
+    if (this.currentPage < this.totalPages) {
+
+      this.currentPage++;
+
+      this.loadMatches();
+
+    }
+
+  }
+
+
+  // ==========================================
+  // CHANGE PAGE SIZE
+  // ==========================================
+
+  changePageSize(): void {
+
+    // When page size changes,
+    // start again from page 1
+
+    this.currentPage = 1;
+
+    this.loadMatches();
+
+  }
+
+
+  // ==========================================
+  // PAGE NUMBERS
+  // ==========================================
+
+  getPages(): number[] {
+
+    return Array.from(
+      { length: this.totalPages },
+      (_, index) => index + 1
+    );
 
   }
 

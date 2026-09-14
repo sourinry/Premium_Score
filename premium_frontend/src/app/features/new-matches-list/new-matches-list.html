@@ -1,518 +1,354 @@
 <div class="container-fluid bg-light min-vh-100 p-4">
-
   <!-- ========================================= -->
   <!-- TOOLBAR -->
   <!-- ========================================= -->
 
   <div class="match-toolbar mb-3">
-
     <div class="d-flex gap-2">
-
       <!-- Cricket -->
       <button
         class="btn"
-        [ngClass]="
-          selectedSport === 'Cricket'
-            ? 'btn-success'
-            : 'btn-outline-success'
-        "
+        [ngClass]="selectedSport === 'Cricket' ? 'btn-success' : 'btn-outline-success'"
         (click)="selectSport('Cricket')"
       >
         🏏 Cricket
       </button>
 
-
       <!-- Soccer -->
       <button
         class="btn"
-        [ngClass]="
-          selectedSport === 'Soccer'
-            ? 'btn-secondary'
-            : 'btn-outline-secondary'
-        "
+        [ngClass]="selectedSport === 'Soccer' ? 'btn-secondary' : 'btn-outline-secondary'"
         (click)="selectSport('Soccer')"
       >
         ⚽ Soccer
       </button>
 
-
       <!-- Tennis -->
       <button
         class="btn"
-        [ngClass]="
-          selectedSport === 'Tennis'
-            ? 'btn-warning'
-            : 'btn-outline-warning'
-        "
+        [ngClass]="selectedSport === 'Tennis' ? 'btn-warning' : 'btn-outline-warning'"
         (click)="selectSport('Tennis')"
       >
         🎾 Tennis
       </button>
 
-
       <!-- Refresh -->
-      <button
-        class="btn btn-dark shadow-sm"
-        [disabled]="isLoading"
-        (click)="refreshMatches()"
-      >
-        <span class="me-2">
-          ↻
-        </span>
+      <button class="btn btn-dark shadow-sm" [disabled]="isLoading" (click)="refreshMatches()">
+        <span class="me-2"> ↻ </span>
 
         Refresh Match List
       </button>
-
     </div>
-
   </div>
-
 
   <!-- ========================================= -->
   <!-- TABLE CARD -->
   <!-- ========================================= -->
 
   <div class="card border-0 shadow-sm">
-
     <div class="card-body p-0">
-
-
       <!-- ===================================== -->
       <!-- LOADING -->
       <!-- ===================================== -->
 
-      <div
-        *ngIf="isLoading"
-        class="text-center p-5"
-      >
+      <div *ngIf="isLoading" class="text-center p-5">
+        <div class="spinner-border text-primary" role="status"></div>
 
-        <div
-          class="spinner-border text-primary"
-          role="status"
-        >
-        </div>
-
-        <div class="mt-2 text-muted">
-          Loading matches...
-        </div>
-
+        <div class="mt-2 text-muted">Loading matches...</div>
       </div>
-
 
       <!-- ===================================== -->
       <!-- TABLE -->
       <!-- ===================================== -->
 
-      <div
-        class="table-responsive matches-table-container"
-        *ngIf="!isLoading"
-      >
-
-        <table
-          class="table table-hover align-middle mb-0 matches-table"
-        >
-
+      <div class="table-responsive matches-table-container" *ngIf="!isLoading">
+        <table class="table table-hover align-middle mb-0 matches-table">
           <!-- ================================= -->
           <!-- HEADER -->
           <!-- ================================= -->
 
           <thead class="table-dark">
-
             <tr>
+              <th class="text-center">#</th>
 
-              <th class="text-center">
-                #
-              </th>
+              <th>Mkt ID</th>
 
-              <th>
-                Mkt ID
-              </th>
+              <th>Event</th>
 
-              <th>
-                Event
-              </th>
+              <th>Score ID</th>
 
-              <th>
-                Score ID
-              </th>
+              <th>Timeline Team Names</th>
 
-              <th>
-                Timeline Team Names
-              </th>
+              <th>Update Team Names</th>
 
-              <th>
-                Update Team Names
-              </th>
-
-              <th>
-                Actions
-              </th>
-
+              <th>Actions</th>
             </tr>
-
           </thead>
-
 
           <!-- ================================= -->
           <!-- BODY -->
           <!-- ================================= -->
 
           <tbody>
-
             <!-- MATCH ROW -->
 
-            <tr
-              *ngFor="let match of matches; let i = index"
-            >
-
+            <tr *ngFor="let match of matches; let i = index">
               <!-- ============================= -->
               <!-- SERIAL NUMBER -->
               <!-- ============================= -->
 
               <td class="text-center">
-
-                <span
-                  class="badge text-bg-danger rounded-pill"
-                >
+                <span class="badge text-bg-danger rounded-pill">
                   {{ i + 1 }}
                 </span>
-
               </td>
-
 
               <!-- ============================= -->
               <!-- MARKET ID -->
               <!-- ============================= -->
 
               <td>
-
-                <div
-                  *ngFor="
-                    let id of getMarketIds(match)
-                  "
-                  class="text-primary fw-semibold"
-                >
+                <div *ngFor="let id of getMarketIds(match)" class="text-primary fw-semibold">
                   {{ id }}
                 </div>
-
               </td>
-
 
               <!-- ============================= -->
               <!-- EVENT -->
               <!-- ============================= -->
 
               <td class="event-column">
-
-                <div
-                  class="fw-bold text-primary mb-1"
-                >
+                <div class="fw-bold text-primary mb-1">
                   {{ match.eventName }}
                 </div>
 
-                <div
-                  class="fw-semibold text-success small mb-1"
-                >
+                <div class="fw-semibold text-success small mb-1">
                   {{ getCompetition(match) }}
                 </div>
 
-                <div
-                  class="text-primary small"
-                >
+                <div class="text-primary small">
                   {{ getMatchDate(match) }}
                 </div>
-
               </td>
-
 
               <!-- ============================= -->
               <!-- SCORE ID -->
               <!-- ============================= -->
 
               <td>
-
                 <span
                   class="badge rounded-pill"
-                  [ngClass]="
-                    match.scoreId === '0'
-                      ? 'text-bg-secondary'
-                      : 'text-bg-primary'
-                  "
+                  [ngClass]="match.scoreId === '0' ? 'text-bg-secondary' : 'text-bg-primary'"
                 >
                   {{ match.scoreId }}
                 </span>
-
               </td>
-
 
               <!-- ============================= -->
               <!-- TIMELINE TEAM NAMES -->
               <!-- ============================= -->
 
               <td>
-
                 <div class="team-section">
-
-                  <div
-                    class="text-success fw-bold mb-2"
-                  >
-                    Timeline
-                  </div>
-
+                  <div class="text-success fw-bold mb-2">Timeline</div>
 
                   <!-- HOME -->
 
-                  <label
-                    class="form-label small fw-semibold mb-1"
-                  >
-                    Home
-                  </label>
+                  <label class="form-label small fw-semibold mb-1"> Home </label>
 
                   <input
                     type="text"
                     class="form-control form-control-sm mb-2"
-                    [value]="
-                      match.homeTeam || 'null'
-                    "
+                    [value]="match.homeTeam || 'null'"
                     readonly
-                  >
-
+                  />
 
                   <!-- AWAY -->
 
-                  <label
-                    class="form-label small fw-semibold mb-1"
-                  >
-                    Away
-                  </label>
+                  <label class="form-label small fw-semibold mb-1"> Away </label>
 
                   <input
                     type="text"
                     class="form-control form-control-sm mb-2"
-                    [value]="
-                      match.awayTeam || 'null'
-                    "
+                    [value]="match.awayTeam || 'null'"
                     readonly
-                  >
+                  />
 
-
-                  <button
-                    class="btn btn-dark btn-sm"
-                    (click)="
-                      updateTeamNames(
-                        match,
-                        'timeline'
-                      )
-                    "
-                  >
+                  <button class="btn btn-dark btn-sm" (click)="updateTeamNames(match, 'timeline')">
                     Update Team Names
                   </button>
-
                 </div>
-
               </td>
-
 
               <!-- ============================= -->
               <!-- UPDATE TEAM NAMES -->
               <!-- ============================= -->
 
               <td>
-
                 <div class="team-section">
-
-                  <div
-                    class="fw-bold text-dark mb-2"
-                  >
-                    Update
-                  </div>
-
+                  <div class="fw-bold text-dark mb-2">Update</div>
 
                   <!-- HOME -->
 
-                  <label
-                    class="form-label small fw-semibold mb-1"
-                  >
-                    Home
-                  </label>
+                  <label class="form-label small fw-semibold mb-1"> Home </label>
 
                   <input
                     type="text"
                     class="form-control form-control-sm mb-2"
-                    [(ngModel)]="
-                      match.homeTeam
-                    "
-                  >
-
+                    [(ngModel)]="match.homeTeam"
+                  />
 
                   <!-- AWAY -->
 
-                  <label
-                    class="form-label small fw-semibold mb-1"
-                  >
-                    Away
-                  </label>
+                  <label class="form-label small fw-semibold mb-1"> Away </label>
 
                   <input
                     type="text"
                     class="form-control form-control-sm mb-2"
-                    [(ngModel)]="
-                      match.awayTeam
-                    "
-                  >
+                    [(ngModel)]="match.awayTeam"
+                  />
 
-
-                  <button
-                    class="btn btn-dark btn-sm"
-                    (click)="
-                      updateTeamNames(
-                        match,
-                        'update'
-                      )
-                    "
-                  >
+                  <button class="btn btn-dark btn-sm" (click)="updateTeamNames(match, 'update')">
                     Update Team Names
                   </button>
-
                 </div>
-
               </td>
-
 
               <!-- ============================= -->
               <!-- ACTIONS -->
               <!-- ============================= -->
 
               <td>
-
-                <div
-                  class="d-flex flex-column gap-2 actions-container"
-                >
-
+                <div class="d-flex flex-column gap-2 actions-container">
                   <!-- ROW 1 -->
 
                   <div class="d-flex gap-2">
-
                     <button
-                      class="
-                        btn
-                        btn-info
-                        btn-sm
-                        text-dark
-                        flex-fill
-                      "
-                      (click)="
-                        checkScore(match)
-                      "
+                      class="btn btn-info btn-sm text-dark flex-fill"
+                      (click)="checkScore(match)"
                     >
                       Check Score
                     </button>
 
-
-                    <button
-                      class="
-                        btn
-                        btn-secondary
-                        btn-sm
-                        flex-fill
-                      "
-                      (click)="
-                        ourFancy(match)
-                      "
-                    >
+                    <button class="btn btn-secondary btn-sm flex-fill" (click)="ourFancy(match)">
                       Our Fancy
                     </button>
-
                   </div>
-
 
                   <!-- ROW 2 -->
 
                   <div class="d-flex gap-2">
-
                     <button
-                      class="
-                        btn
-                        btn-sm
-                        flex-fill
-                      "
-                      [ngClass]="
-                        match.resultBlocked
-                          ? 'btn-danger'
-                          : 'btn-primary'
-                      "
-                      (click)="
-                        toggleResult(match)
-                      "
+                      class="btn btn-sm flex-fill"
+                      [ngClass]="match.resultBlocked ? 'btn-danger' : 'btn-primary'"
+                      (click)="toggleResult(match)"
                     >
-
-                      {{
-                        match.resultBlocked
-                          ? 'Unblock Result'
-                          : 'Block Result'
-                      }}
-
+                      {{ match.resultBlocked ? 'Unblock Result' : 'Block Result' }}
                     </button>
 
-
-                    <button
-                      class="
-                        btn
-                        btn-success
-                        btn-sm
-                        flex-fill
-                      "
-                      (click)="
-                        allFancy(match)
-                      "
-                    >
+                    <button class="btn btn-success btn-sm flex-fill" (click)="allFancy(match)">
                       All Fancy
                     </button>
-
                   </div>
-
                 </div>
-
               </td>
-
             </tr>
-
 
             <!-- ================================= -->
             <!-- NO DATA -->
             <!-- ================================= -->
 
-            <tr
-              *ngIf="matches.length === 0"
-            >
-
-              <td
-                colspan="7"
-                class="
-                  text-center
-                  text-muted
-                  p-5
-                "
-              >
-
-                <div class="fs-4 mb-2">
-                  📋
-                </div>
+            <tr *ngIf="matches.length === 0">
+              <td colspan="7" class="text-center text-muted p-5">
+                <div class="fs-4 mb-2">📋</div>
 
                 No matches found.
-
               </td>
-
             </tr>
-
           </tbody>
-
         </table>
 
+        <!-- ========================================= -->
+        <!-- PAGINATION -->
+        <!-- ========================================= -->
+
+        <div
+          class="pagination-container d-flex justify-content-between align-items-center p-3 border-top"
+          *ngIf="!isLoading && totalItems > 0"
+        >
+          <!-- LEFT SIDE -->
+          <div class="text-muted small">
+            Showing
+
+            <strong>
+              {{ (currentPage - 1) * pageSize + 1 }}
+            </strong>
+
+            -
+
+            <strong>
+              {{ Math.min(currentPage * pageSize, totalItems) }}
+            </strong>
+
+            of
+
+            <strong>
+              {{ totalItems }}
+            </strong>
+
+            matches
+          </div>
+
+          <!-- PAGE SIZE -->
+          <div class="d-flex align-items-center gap-2">
+            <span class="text-muted small"> Per page: </span>
+
+            <select
+              class="form-select form-select-sm"
+              style="width: 80px"
+              [(ngModel)]="pageSize"
+              (change)="changePageSize()"
+            >
+              <option [ngValue]="10">10</option>
+
+              <option [ngValue]="20">20</option>
+
+              <option [ngValue]="50">50</option>
+
+              <option [ngValue]="100">100</option>
+            </select>
+
+            <!-- PAGINATION -->
+            <nav>
+              <ul class="pagination pagination-sm mb-0">
+                <!-- PREVIOUS -->
+
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                  <button class="page-link" type="button" (click)="previousPage()">Previous</button>
+                </li>
+
+                <!-- PAGE NUMBERS -->
+
+                <li
+                  class="page-item"
+                  *ngFor="let page of getPages()"
+                  [class.active]="page === currentPage"
+                >
+                  <button class="page-link" type="button" (click)="changePage(page)">
+                    {{ page }}
+                  </button>
+                </li>
+
+                <!-- NEXT -->
+
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                  <button class="page-link" type="button" (click)="nextPage()">Next</button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
       </div>
-
     </div>
-
   </div>
-
 </div>

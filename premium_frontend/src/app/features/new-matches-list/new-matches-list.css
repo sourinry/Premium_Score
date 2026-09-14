@@ -157,23 +157,4 @@
     min-width: 1250px;
   }
 
-
-  /* Pagination */
-
-  .pagination-container {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 15px;
-  }
-
-
-  .pagination-container > div {
-    width: 100%;
-  }
-
-
-  .pagination {
-    flex-wrap: wrap;
-  }
-
 }
