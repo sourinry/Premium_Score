@@ -17,31 +17,12 @@ startMatchScheduler();
 
 
 app.get("/", (req, res) => {
-  console.log("🔥 ROOT HIT");
-
   res.json({
     success: true,
     message: "Premium Score API is running",
   });
 });
 
-
-
-
 app.use("/api/v1", routes);
-
-// ================================
-// 404
-// ================================
-
-app.use((req, res) => {
-  console.log("❌ UNMATCHED:", req.method, req.originalUrl);
-
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-    path: req.originalUrl,
-  });
-});
 
 module.exports = app;

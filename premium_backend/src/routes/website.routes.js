@@ -12,20 +12,13 @@ const {
 
 const router = express.Router();
 
-console.log("🔥 WEBSITE ROUTE LOADED");
 
 router.post("/", addWebsite);
-
 router.get("/", getWebsites);
-
 router.get("/unregistered", getUnregisteredWebsites);
-
 router.get("/:id", getWebsiteById);
-
 router.put("/:id", updateWebsite);
-
 router.patch("/:id/unregister", unregisterWebsite);
-
 router.patch("/:id/register", registerWebsite);
 
 module.exports = router;
