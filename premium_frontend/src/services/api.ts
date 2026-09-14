@@ -25,4 +25,8 @@ export class Api {
   getUnregisteredWebsites() {
   return this.http.get(`${this.baseApiUrl}/websites/unregistered`);
 }
+
+  registerWebsite(websiteId: string) {
+    return this.http.patch(`${this.baseApiUrl}/websites/${websiteId}/register`, {});
+  }
 }

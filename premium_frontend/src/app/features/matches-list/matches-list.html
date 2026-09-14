@@ -1,0 +1,225 @@
+<div class="matches-page">
+    
+  <!-- Page Header -->
+  <!-- <div class="page-header">
+
+    <div>
+      <h1>
+        Matches List
+        <span>{{ selectedSport }}</span>
+      </h1>
+
+      <p>Manage and monitor active matches</p>
+    </div>
+
+  </div> -->
+
+
+  <!-- Filter Section -->
+  <div class="filter-card">
+
+    <!-- Sport Tabs -->
+    <div class="sport-tabs">
+
+      <button
+        class="sport-btn cricket"
+        [class.active]="selectedSport === 'Cricket'"
+        (click)="selectSport('Cricket')">
+        <span class="sport-icon">🏏</span>
+        Cricket
+      </button>
+
+      <button
+        class="sport-btn soccer"
+        [class.active]="selectedSport === 'Soccer'"
+        (click)="selectSport('Soccer')">
+        <span class="sport-icon">⚽</span>
+        Soccer
+      </button>
+
+      <button
+        class="sport-btn tennis"
+        [class.active]="selectedSport === 'Tennis'"
+        (click)="selectSport('Tennis')">
+        <span class="sport-icon">🎾</span>
+        Tennis
+      </button>
+
+    </div>
+
+
+    <!-- Date Filters -->
+    <div class="date-filters">
+
+      <div class="date-field">
+        <label>From</label>
+
+        <div class="input-wrapper">
+          <input
+            type="date"
+            value="2026-09-08">
+        </div>
+      </div>
+
+
+      <div class="date-field">
+        <label>To</label>
+
+        <div class="input-wrapper">
+          <input
+            type="date"
+            value="2026-09-09">
+        </div>
+      </div>
+
+
+      <button
+        class="search-btn"
+        (click)="search()">
+
+        <span>⌕</span>
+        Search
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- Match Table Card -->
+  <div class="table-card">
+
+    <!-- Table Header -->
+    <div class="table-header">
+
+      <div class="table-title">
+        <h2>Active Matches</h2>
+
+        <span class="match-count">
+          {{ matches.length }} Matches
+        </span>
+      </div>
+
+      <div class="live-indicator">
+        <span></span>
+        Live
+      </div>
+
+    </div>
+
+
+    <!-- Table -->
+    <div class="table-container">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th class="number-col">#</th>
+            <th>Mkt ID</th>
+            <th class="event-col">Event Name</th>
+            <th>Score ID</th>
+            <th>Source</th>
+            <th>Open Date</th>
+            <th class="action-col">Action</th>
+          </tr>
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="let match of matches; let i = index">
+
+            <!-- Number -->
+            <td class="number">
+              {{ i + 1 }}
+            </td>
+
+
+            <!-- Market ID -->
+            <td>
+              <div class="market-id">
+                <span
+                  *ngFor="let id of match.mktId.split('\n')">
+                  {{ id }}
+                </span>
+              </div>
+            </td>
+
+
+            <!-- Event -->
+            <td class="event-name">
+              {{ match.eventName }}
+            </td>
+
+
+            <!-- Score ID -->
+            <td>
+
+              <span
+                class="score-id"
+                [class.not-assigned]="match.scoreId === '0'">
+
+                {{ match.scoreId === '0' ? 'Not Assigned' : match.scoreId }}
+
+              </span>
+
+            </td>
+
+
+            <!-- Source -->
+            <td>
+
+              <span class="source-badge">
+                {{ match.scoreId === '0' ? '—' : 'API' }}
+              </span>
+
+            </td>
+
+
+            <!-- Open Date -->
+            <td class="open-date">
+              {{ match.openDate }}
+            </td>
+
+
+            <!-- Actions -->
+            <td>
+
+              <div class="actions">
+
+                <button
+                  class="action-btn score"
+                  (click)="checkScore(match)">
+                  Check Score
+                </button>
+
+                <button
+                  class="action-btn our-fancy"
+                  (click)="ourFancy(match)">
+                  Our Fancy
+                </button>
+
+                <button
+                  class="action-btn all-fancy"
+                  (click)="allFancy(match)">
+                  All Fancy
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>

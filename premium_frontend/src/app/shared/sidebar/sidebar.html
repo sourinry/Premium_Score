@@ -1,0 +1,97 @@
+<aside
+  class="sidebar"
+  [class.collapsed]="isCollapsed()">
+
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+
+    <div class="logo">
+
+      <i class="bi bi-grid-1x2-fill"></i>
+
+      @if (!isCollapsed()) {
+        <span>Premium Admin</span>
+      }
+
+    </div>
+
+    <button
+      type="button"
+      class="toggle-btn"
+      (click)="toggleSidebar()">
+
+      <i
+        class="bi"
+        [class.bi-chevron-left]="!isCollapsed()"
+        [class.bi-chevron-right]="isCollapsed()">
+      </i>
+
+    </button>
+
+  </div>
+
+
+  <!-- Navigation -->
+  <nav class="sidebar-menu">
+
+    <!-- Domain Whitelisting -->
+    <a
+      routerLink="/domain-whitelisting"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }">
+
+      <i class="bi bi-globe2"></i>
+
+      @if (!isCollapsed()) {
+        <span>Domain Whitelisting</span>
+      }
+
+    </a>
+
+
+    <!-- New Match List -->
+    <a
+      routerLink="/new-match-list"
+      routerLinkActive="active">
+
+      <i class="bi bi-plus-circle"></i>
+
+      @if (!isCollapsed()) {
+        <span>New Match List</span>
+      }
+
+    </a>
+
+
+    <!-- Old Match List -->
+    <a
+      routerLink="/old-match-list"
+      routerLinkActive="active">
+
+      <i class="bi bi-list-ul"></i>
+
+      @if (!isCollapsed()) {
+        <span>Old Match List</span>
+      }
+
+    </a>
+
+  </nav>
+
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+
+    <div class="admin-profile">
+
+      <i class="bi bi-person-circle"></i>
+
+      @if (!isCollapsed()) {
+        <span>Admin</span>
+      }
+
+    </div>
+
+  </div>
+
+</aside>

@@ -1,0 +1,9 @@
+.main-content {
+  margin-left: 250px;
+  min-height: 100vh;
+  padding: 20px;
+
+  background: #f5f6f8;
+
+  box-sizing: border-box;
+}

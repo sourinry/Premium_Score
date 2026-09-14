@@ -1,0 +1,97 @@
+.matches-table {
+  min-width: 1250px;
+}
+
+
+/* Table header */
+
+.matches-table thead th {
+  padding: 14px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.match-toolbar {
+  position: sticky;
+  top: 0;
+
+  z-index: 1030;
+
+  background: #f8f9fa;
+
+  padding: 15px 0;
+
+  margin-bottom: 5px;
+}
+
+/* Table cells */
+
+.matches-table tbody td {
+  padding: 14px 12px;
+  font-size: 13px;
+}
+
+
+/* Event column */
+
+.event-column {
+  min-width: 270px;
+}
+
+
+/* Team sections */
+
+.team-section {
+  min-width: 190px;
+}
+
+
+/* Inputs */
+
+.team-section .form-control {
+  border-radius: 6px;
+}
+
+
+/* Buttons */
+
+.btn {
+  border-radius: 7px;
+  font-weight: 500;
+}
+
+
+/* Table hover */
+
+.matches-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+
+/* Card */
+
+.card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+
+/* Mobile */
+
+@media (max-width: 768px) {
+
+  .container-fluid {
+    padding: 15px !important;
+  }
+
+  .container-fluid > .d-flex:first-child {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 15px;
+  }
+
+  .container-fluid > .d-flex:first-child button {
+    width: 100%;
+  }
+
+}
