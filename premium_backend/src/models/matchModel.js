@@ -64,6 +64,10 @@ const matchSchema = new mongoose.Schema(
       default: "All",
     },
 
+    isOld: {
+      type: Boolean,
+      default: false,
+    },
 
     homeTeam: {
       type: String,
@@ -92,9 +96,7 @@ const matchSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-module.exports =
-  mongoose.models.Match ||
-  mongoose.model("Match", matchSchema);
+module.exports = mongoose.models.Match || mongoose.model("Match", matchSchema);
