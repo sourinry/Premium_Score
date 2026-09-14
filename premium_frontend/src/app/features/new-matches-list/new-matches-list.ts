@@ -14,9 +14,31 @@ import { FormsModule } from '@angular/forms';
 })
 export class NewMatchesList {
 
+  // ================= SPORT =================
+
   selectedSport = 'Cricket';
 
+
+  // ================= PAGINATION =================
+
+  currentPage = 1;
+
+  pageSize = 5;
+
+  totalPages = 0;
+
+  pages: number[] = [];
+
+
+  // ================= LOADING =================
+
+  isLoading = false;
+
+
+  // ================= MATCH DATA =================
+
   matches = [
+
     {
       id: 1,
       mktId: ['1.262091392', '36039844'],
@@ -52,6 +74,7 @@ export class NewMatchesList {
       awayTeam: null,
       resultBlocked: true
     },
+
     {
       id: 4,
       mktId: ['1.262091392', '36039844'],
@@ -87,6 +110,7 @@ export class NewMatchesList {
       awayTeam: null,
       resultBlocked: true
     },
+
     {
       id: 7,
       mktId: ['1.262091392', '36039844'],
@@ -122,33 +146,245 @@ export class NewMatchesList {
       awayTeam: null,
       resultBlocked: true
     }
+
   ];
 
-  selectSport(sport: string) {
-    this.selectedSport = sport;
+
+  // ================= CONSTRUCTOR =================
+
+  constructor() {
+
+    this.updatePagination();
+
   }
+
+
+  // ================= PAGINATED DATA =================
+
+  get paginatedMatches() {
+
+    const startIndex =
+      (this.currentPage - 1) * this.pageSize;
+
+    const endIndex =
+      startIndex + this.pageSize;
+
+    return this.matches.slice(
+      startIndex,
+      endIndex
+    );
+
+  }
+
+
+  // ================= UPDATE PAGINATION =================
+
+  updatePagination() {
+
+    this.totalPages = Math.ceil(
+      this.matches.length / this.pageSize
+    );
+
+    this.pages = Array.from(
+      {
+        length: this.totalPages
+      },
+      (_, index) => index + 1
+    );
+
+  }
+
+
+  // ================= GO TO PAGE =================
+
+  goToPage(page: number) {
+
+    if (
+      page < 1 ||
+      page > this.totalPages
+    ) {
+      return;
+    }
+
+    this.currentPage = page;
+
+  }
+
+
+  // ================= NEXT PAGE =================
+
+  nextPage() {
+
+    if (
+      this.currentPage <
+      this.totalPages
+    ) {
+
+      this.currentPage++;
+
+    }
+
+  }
+
+
+  // ================= PREVIOUS PAGE =================
+
+  previousPage() {
+
+    if (
+      this.currentPage > 1
+    ) {
+
+      this.currentPage--;
+
+    }
+
+  }
+
+
+  // ================= CHANGE PAGE SIZE =================
+
+  changePageSize(size: number) {
+
+    this.pageSize = size;
+
+    // Always start from first page
+    this.currentPage = 1;
+
+    this.updatePagination();
+
+  }
+
+
+  // ================= SERIAL NUMBER =================
+
+  getSerialNumber(index: number): number {
+
+    return (
+      (this.currentPage - 1) *
+      this.pageSize
+    ) + index + 1;
+
+  }
+
+
+  // ================= START ITEM =================
+
+  getStartItem(): number {
+
+    if (this.matches.length === 0) {
+      return 0;
+    }
+
+    return (
+      (this.currentPage - 1) *
+      this.pageSize
+    ) + 1;
+
+  }
+
+
+  // ================= END ITEM =================
+
+  getEndItem(): number {
+
+    return Math.min(
+      this.currentPage *
+      this.pageSize,
+      this.matches.length
+    );
+
+  }
+
+
+  // ================= SPORT =================
+
+  selectSport(sport: string) {
+
+    this.selectedSport = sport;
+
+    // Reset pagination
+    this.currentPage = 1;
+
+  }
+
+
+  // ================= REFRESH =================
 
   refreshMatches() {
-    console.log('Refresh match list');
+
+    console.log(
+      'Refresh match list'
+    );
+
+    /*
+      Later:
+
+      this.loadMatchesFromAPI();
+    */
+
   }
+
+
+  // ================= CHECK SCORE =================
 
   checkScore(match: any) {
-    console.log('Check Score', match);
+
+    console.log(
+      'Check Score',
+      match
+    );
+
   }
 
-  updateTeamNames(match: any, type: string) {
-    console.log('Update Team Names', type, match);
+
+  // ================= UPDATE TEAM NAMES =================
+
+  updateTeamNames(
+    match: any,
+    type: string
+  ) {
+
+    console.log(
+      'Update Team Names',
+      type,
+      match
+    );
+
   }
+
+
+  // ================= TOGGLE RESULT =================
 
   toggleResult(match: any) {
-    match.resultBlocked = !match.resultBlocked;
+
+    match.resultBlocked =
+      !match.resultBlocked;
+
   }
+
+
+  // ================= OUR FANCY =================
 
   ourFancy(match: any) {
-    console.log('Our Fancy', match);
+
+    console.log(
+      'Our Fancy',
+      match
+    );
+
   }
 
+
+  // ================= ALL FANCY =================
+
   allFancy(match: any) {
-    console.log('All Fancy', match);
+
+    console.log(
+      'All Fancy',
+      match
+    );
+
   }
+
 }

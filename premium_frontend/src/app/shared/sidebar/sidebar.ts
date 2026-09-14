@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, output, signal } from '@angular/core';
 import {
   RouterLink,
   RouterLinkActive
@@ -17,8 +17,12 @@ export class Sidebar {
 
   isCollapsed = signal(false);
 
+  sidebarToggle = output<boolean>();
+
   toggleSidebar(): void {
     this.isCollapsed.update(value => !value);
+
+    this.sidebarToggle.emit(this.isCollapsed());
   }
 
 }

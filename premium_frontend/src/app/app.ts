@@ -4,10 +4,21 @@ import { Sidebar } from './shared/sidebar/sidebar';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Sidebar],
+  imports: [
+    RouterOutlet,
+    Sidebar
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
+
   protected readonly title = signal('premium_frontend');
+
+  isSidebarCollapsed = signal(false);
+
+  onSidebarToggle(collapsed: boolean): void {
+    this.isSidebarCollapsed.set(collapsed);
+  }
+
 }

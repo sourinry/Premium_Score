@@ -1,96 +1,69 @@
 <div class="container-fluid bg-light min-vh-100 p-4">
 
-  <!-- ================= HEADER ================= -->
-
-  <!-- <div class="d-flex justify-content-between align-items-center mb-4">
-
-    <div>
-      <h2 class="fw-bold mb-1">
-        Matches List
-        <span class="text-secondary">:-</span>
-        <span class="text-primary">
-          {{ selectedSport }}
-        </span>
-      </h2>
-
-      <small class="text-muted">
-        Manage active matches, scores and team names
-      </small>
-    </div>
-
-
-    <button
-      class="btn btn-dark shadow-sm"
-      (click)="refreshMatches()">
-
-      <span class="me-2">↻</span>
-      Refresh Match List
-
-    </button>
-
-  </div> -->
-
-
   <!-- ================= SPORT TABS ================= -->
 
-<div class="match-toolbar">
+  <div class="match-toolbar mb-3">
 
-  <div class="d-flex gap-2">
+    <div class="d-flex gap-2">
 
-    <button
-      class="btn"
-      [ngClass]="
-        selectedSport === 'Cricket'
-          ? 'btn-success'
-          : 'btn-outline-success'
-      "
-      (click)="selectSport('Cricket')">
+      <!-- Cricket -->
+      <button
+        class="btn"
+        [ngClass]="
+          selectedSport === 'Cricket'
+            ? 'btn-success'
+            : 'btn-outline-success'
+        "
+        (click)="selectSport('Cricket')">
 
-      🏏 Cricket
+        🏏 Cricket
 
-    </button>
-
-
-    <button
-      class="btn"
-      [ngClass]="
-        selectedSport === 'Soccer'
-          ? 'btn-secondary'
-          : 'btn-outline-secondary'
-      "
-      (click)="selectSport('Soccer')">
-
-      ⚽ Soccer
-
-    </button>
+      </button>
 
 
-    <button
-      class="btn"
-      [ngClass]="
-        selectedSport === 'Tennis'
-          ? 'btn-warning'
-          : 'btn-outline-warning'
-      "
-      (click)="selectSport('Tennis')">
+      <!-- Soccer -->
+      <button
+        class="btn"
+        [ngClass]="
+          selectedSport === 'Soccer'
+            ? 'btn-secondary'
+            : 'btn-outline-secondary'
+        "
+        (click)="selectSport('Soccer')">
 
-      🎾 Tennis
+        ⚽ Soccer
 
-    </button>
+      </button>
 
 
-    <button
-      class="btn btn-dark shadow-sm"
-      (click)="refreshMatches()">
+      <!-- Tennis -->
+      <button
+        class="btn"
+        [ngClass]="
+          selectedSport === 'Tennis'
+            ? 'btn-warning'
+            : 'btn-outline-warning'
+        "
+        (click)="selectSport('Tennis')">
 
-      <span class="me-2">↻</span>
-      Refresh Match List
+        🎾 Tennis
 
-    </button>
+      </button>
+
+
+      <!-- Refresh -->
+      <button
+        class="btn btn-dark shadow-sm"
+        (click)="refreshMatches()">
+
+        <span class="me-2">↻</span>
+        Refresh Match List
+
+      </button>
+
+    </div>
 
   </div>
-
-</div>
 
 
   <!-- ================= TABLE CARD ================= -->
@@ -99,8 +72,27 @@
 
     <div class="card-body p-0">
 
-      <!-- Responsive horizontal scrolling -->
-      <div class="table-responsive">
+      <!-- Loading -->
+      <div
+        *ngIf="isLoading"
+        class="text-center p-4">
+
+        <div
+          class="spinner-border text-primary"
+          role="status">
+        </div>
+
+        <div class="mt-2 text-muted">
+          Loading matches...
+        </div>
+
+      </div>
+
+
+      <!-- TABLE -->
+      <div
+        class="table-responsive"
+        *ngIf="!isLoading">
 
         <table
           class="table table-hover align-middle mb-0 matches-table">
@@ -149,15 +141,19 @@
 
           <tbody>
 
-            <tr *ngFor="let match of matches">
+            <tr
+              *ngFor="let match of paginatedMatches; let i = index">
 
 
               <!-- NUMBER -->
 
               <td class="text-center">
 
-                <span class="badge text-bg-danger rounded-pill">
-                  {{ match.id }}
+                <span
+                  class="badge text-bg-danger rounded-pill">
+
+                  {{ getSerialNumber(i) }}
+
                 </span>
 
               </td>
@@ -222,15 +218,21 @@
 
                 <div class="team-section">
 
-                  <div class="text-success fw-bold mb-2">
+                  <div
+                    class="text-success fw-bold mb-2">
+
                     Timeline
+
                   </div>
 
 
                   <!-- HOME -->
 
-                  <label class="form-label small fw-semibold mb-1">
+                  <label
+                    class="form-label small fw-semibold mb-1">
+
                     Home
+
                   </label>
 
                   <input
@@ -243,8 +245,11 @@
 
                   <!-- AWAY -->
 
-                  <label class="form-label small fw-semibold mb-1">
+                  <label
+                    class="form-label small fw-semibold mb-1">
+
                     Away
+
                   </label>
 
                   <input
@@ -274,15 +279,21 @@
 
                 <div class="team-section">
 
-                  <div class="fw-bold text-dark mb-2">
+                  <div
+                    class="fw-bold text-dark mb-2">
+
                     Update
+
                   </div>
 
 
                   <!-- HOME -->
 
-                  <label class="form-label small fw-semibold mb-1">
+                  <label
+                    class="form-label small fw-semibold mb-1">
+
                     Home
+
                   </label>
 
                   <input
@@ -294,8 +305,11 @@
 
                   <!-- AWAY -->
 
-                  <label class="form-label small fw-semibold mb-1">
+                  <label
+                    class="form-label small fw-semibold mb-1">
+
                     Away
+
                   </label>
 
                   <input
@@ -386,9 +400,168 @@
 
             </tr>
 
+
+            <!-- ================= NO DATA ================= -->
+
+            <tr *ngIf="matches.length === 0">
+
+              <td
+                colspan="7"
+                class="text-center text-muted p-4">
+
+                No matches found.
+
+              </td>
+
+            </tr>
+
           </tbody>
 
         </table>
+
+      </div>
+
+
+      <!-- ================= PAGINATION ================= -->
+
+      <div
+        *ngIf="!isLoading && matches.length > 0"
+        class="d-flex justify-content-between align-items-center p-3 border-top">
+
+
+        <!-- SHOWING INFO -->
+
+        <div class="text-muted small">
+
+          Showing
+
+          <strong>
+            {{ getStartItem() }}
+          </strong>
+
+          -
+
+          <strong>
+            {{ getEndItem() }}
+          </strong>
+
+          of
+
+          <strong>
+            {{ matches.length }}
+          </strong>
+
+          matches
+
+        </div>
+
+
+        <!-- PAGINATION CONTROLS -->
+
+        <div class="d-flex align-items-center gap-3">
+
+
+          <!-- PAGE SIZE -->
+
+          <div class="d-flex align-items-center gap-2">
+
+            <span class="small text-muted">
+              Show
+            </span>
+
+            <select
+              class="form-select form-select-sm"
+              style="width: 80px"
+              [ngModel]="pageSize"
+              (ngModelChange)="changePageSize(+$event)">
+
+              <option [ngValue]="5">
+                5
+              </option>
+
+              <option [ngValue]="10">
+                10
+              </option>
+
+              <option [ngValue]="25">
+                25
+              </option>
+
+              <option [ngValue]="50">
+                50
+              </option>
+
+            </select>
+
+          </div>
+
+
+          <!-- PAGINATION -->
+
+          <nav>
+
+            <ul
+              class="pagination pagination-sm mb-0">
+
+
+              <!-- PREVIOUS -->
+
+              <li
+                class="page-item"
+                [class.disabled]="currentPage === 1">
+
+                <button
+                  class="page-link"
+                  [disabled]="currentPage === 1"
+                  (click)="previousPage()">
+
+                  Previous
+
+                </button>
+
+              </li>
+
+
+              <!-- PAGE NUMBERS -->
+
+              <li
+                *ngFor="let page of pages"
+                class="page-item"
+                [class.active]="currentPage === page">
+
+                <button
+                  class="page-link"
+                  (click)="goToPage(page)">
+
+                  {{ page }}
+
+                </button>
+
+              </li>
+
+
+              <!-- NEXT -->
+
+              <li
+                class="page-item"
+                [class.disabled]="currentPage === totalPages">
+
+                <button
+                  class="page-link"
+                  [disabled]="currentPage === totalPages"
+                  (click)="nextPage()">
+
+                  Next
+
+                </button>
+
+              </li>
+
+            </ul>
+
+          </nav>
+
+        </div>
 
       </div>
 
