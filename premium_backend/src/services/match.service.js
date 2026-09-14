@@ -1,12 +1,6 @@
 const Match = require("../models/matchModel");
 
-// =====================================================
-// GET CURRENT MATCHES
-// =====================================================
-
-const getMatches = async (
-  filters = {}
-) => {
+const getMatches = async (filters = {}) => {
   try {
     const {
       sportId,
@@ -17,65 +11,28 @@ const getMatches = async (
       limit = 20,
     } = filters;
 
-    // =============================================
-    // CURRENT MATCHES ONLY
-    // =============================================
-
     const query = {
       isOld: false,
     };
 
-    // =============================================
-    // SPORT
-    // =============================================
-
-    if (
-      sportId !== undefined &&
-      sportId !== null &&
-      sportId !== ""
-    ) {
-      query.sportId = Number(
-        sportId
-      );
+    if (sportId !== undefined && sportId !== null && sportId !== "") {
+      query.sportId = Number(sportId);
     }
 
-    // =============================================
-    // RESULT
-    // =============================================
-
-    if (
-      isResult !== undefined &&
-      isResult !== null &&
-      isResult !== ""
-    ) {
-      query.isResult =
-        String(isResult).toLowerCase() ===
-        "true";
+    if (isResult !== undefined && isResult !== null && isResult !== "") {
+      query.isResult = String(isResult).toLowerCase() === "true";
     }
 
-    // =============================================
-    // MATCH TYPE
-    // =============================================
-
-    if (
-      matchType !== undefined &&
-      matchType !== null &&
-      matchType !== ""
-    ) {
+    if (matchType !== undefined && matchType !== null && matchType !== "") {
       query.matchType = matchType;
     }
-
-    // =============================================
-    // SEARCH
-    // =============================================
 
     if (
       search !== undefined &&
       search !== null &&
       String(search).trim() !== ""
     ) {
-      const searchText =
-        String(search).trim();
+      const searchText = String(search).trim();
 
       query.$or = [
         {
@@ -105,35 +62,13 @@ const getMatches = async (
       ];
     }
 
-    // =============================================
-    // PAGINATION
-    // =============================================
+    const currentPage = Math.max(parseInt(page, 10) || 1, 1);
 
-    const currentPage = Math.max(
-      parseInt(page, 10) || 1,
-      1
-    );
+    const currentLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
 
-    const currentLimit = Math.min(
-      Math.max(
-        parseInt(limit, 10) || 20,
-        1
-      ),
-      100
-    );
+    const skip = (currentPage - 1) * currentLimit;
 
-    const skip =
-      (currentPage - 1) *
-      currentLimit;
-
-    // =============================================
-    // FETCH
-    // =============================================
-
-    const [
-      matches,
-      total,
-    ] = await Promise.all([
+    const [matches, total] = await Promise.all([
       Match.find(query)
         .sort({
           openDate: 1,
@@ -150,27 +85,16 @@ const getMatches = async (
       total,
       page: currentPage,
       limit: currentLimit,
-      totalPages: Math.ceil(
-        total / currentLimit
-      ),
+      totalPages: Math.ceil(total / currentLimit),
     };
   } catch (error) {
-    console.error(
-      "❌ Match service getMatches error:",
-      error
-    );
+    console.error("❌ Match service getMatches error:", error);
 
     throw error;
   }
 };
 
-// =====================================================
-// GET OLD MATCHES
-// =====================================================
-
-const getOldMatches = async (
-  filters = {}
-) => {
+const getOldMatches = async (filters = {}) => {
   try {
     const {
       sportId,
@@ -181,65 +105,28 @@ const getOldMatches = async (
       limit = 20,
     } = filters;
 
-    // =============================================
-    // OLD MATCHES ONLY
-    // =============================================
-
     const query = {
       isOld: true,
     };
 
-    // =============================================
-    // SPORT
-    // =============================================
-
-    if (
-      sportId !== undefined &&
-      sportId !== null &&
-      sportId !== ""
-    ) {
-      query.sportId = Number(
-        sportId
-      );
+    if (sportId !== undefined && sportId !== null && sportId !== "") {
+      query.sportId = Number(sportId);
     }
 
-    // =============================================
-    // RESULT
-    // =============================================
-
-    if (
-      isResult !== undefined &&
-      isResult !== null &&
-      isResult !== ""
-    ) {
-      query.isResult =
-        String(isResult).toLowerCase() ===
-        "true";
+    if (isResult !== undefined && isResult !== null && isResult !== "") {
+      query.isResult = String(isResult).toLowerCase() === "true";
     }
 
-    // =============================================
-    // MATCH TYPE
-    // =============================================
-
-    if (
-      matchType !== undefined &&
-      matchType !== null &&
-      matchType !== ""
-    ) {
+    if (matchType !== undefined && matchType !== null && matchType !== "") {
       query.matchType = matchType;
     }
-
-    // =============================================
-    // SEARCH
-    // =============================================
 
     if (
       search !== undefined &&
       search !== null &&
       String(search).trim() !== ""
     ) {
-      const searchText =
-        String(search).trim();
+      const searchText = String(search).trim();
 
       query.$or = [
         {
@@ -269,35 +156,13 @@ const getOldMatches = async (
       ];
     }
 
-    // =============================================
-    // PAGINATION
-    // =============================================
+    const currentPage = Math.max(parseInt(page, 10) || 1, 1);
 
-    const currentPage = Math.max(
-      parseInt(page, 10) || 1,
-      1
-    );
+    const currentLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
 
-    const currentLimit = Math.min(
-      Math.max(
-        parseInt(limit, 10) || 20,
-        1
-      ),
-      100
-    );
+    const skip = (currentPage - 1) * currentLimit;
 
-    const skip =
-      (currentPage - 1) *
-      currentLimit;
-
-    // =============================================
-    // FETCH OLD MATCHES
-    // =============================================
-
-    const [
-      matches,
-      total,
-    ] = await Promise.all([
+    const [matches, total] = await Promise.all([
       Match.find(query)
         .sort({
           openDate: -1,
@@ -314,27 +179,16 @@ const getOldMatches = async (
       total,
       page: currentPage,
       limit: currentLimit,
-      totalPages: Math.ceil(
-        total / currentLimit
-      ),
+      totalPages: Math.ceil(total / currentLimit),
     };
   } catch (error) {
-    console.error(
-      "❌ Match service getOldMatches error:",
-      error
-    );
+    console.error("❌ Match service getOldMatches error:", error);
 
     throw error;
   }
 };
 
-// =====================================================
-// GET MATCH BY EVENT ID
-// =====================================================
-
-const getMatchById = async (
-  eventId
-) => {
+const getMatchById = async (eventId) => {
   try {
     if (!eventId) {
       return null;
@@ -344,18 +198,11 @@ const getMatchById = async (
       eventId: String(eventId),
     }).lean();
   } catch (error) {
-    console.error(
-      "❌ Match service getMatchById error:",
-      error
-    );
+    console.error("❌ Match service getMatchById error:", error);
 
     throw error;
   }
 };
-
-// =====================================================
-// EXPORT
-// =====================================================
 
 module.exports = {
   getMatches,
