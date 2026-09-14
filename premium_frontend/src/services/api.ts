@@ -39,4 +39,17 @@ updateWebsite(websiteId: string, payload: any) {
     payload
   );
 }
+
+matchListApi(payload: any) {
+  return this.http.get(
+    `${this.baseApiUrl}/matches`,
+    {
+      params: {
+        page: String(payload.page),
+        limit: String(payload.limit),
+        sportId: String(payload.sportId)
+      }
+    }
+  );
+}
 }

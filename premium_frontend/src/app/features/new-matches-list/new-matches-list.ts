@@ -1,6 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Api } from '../../../services/api';
+import { ToastrService } from 'ngx-toastr';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-new-matches-list',
@@ -12,341 +15,266 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './new-matches-list.html',
   styleUrl: './new-matches-list.css'
 })
-export class NewMatchesList {
+export class NewMatchesList implements OnInit {
 
-  // ================= SPORT =================
+  // ==========================================
+  // SPORT
+  // ==========================================
 
   selectedSport = 'Cricket';
 
-
-  // ================= PAGINATION =================
-
-  currentPage = 1;
-
-  pageSize = 5;
-
-  totalPages = 0;
-
-  pages: number[] = [];
+  sportsValue = '';
 
 
-  // ================= LOADING =================
+  // ==========================================
+  // LOADING
+  // ==========================================
 
   isLoading = false;
 
 
-  // ================= MATCH DATA =================
+  // ==========================================
+  // MATCH DATA
+  // ==========================================
 
-  matches = [
-
-    {
-      id: 1,
-      mktId: ['1.262091392', '36039844'],
-      eventName: 'Namibia v South Africa',
-      competition: 'One Day Matches',
-      date: '09/09/2026 01:00:00 PM',
-      scoreId: '73712500',
-      homeTeam: 'Namibia',
-      awayTeam: 'South Africa',
-      resultBlocked: false
-    },
-
-    {
-      id: 2,
-      mktId: ['1.262122410', '36043082'],
-      eventName: 'Essex W v Yorkshire W',
-      competition: 'Metro Bank Womens One Day Cup',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '68579602',
-      homeTeam: 'Essex',
-      awayTeam: 'Yorkshire',
-      resultBlocked: false
-    },
-
-    {
-      id: 3,
-      mktId: ['-11203045', '-11202999'],
-      eventName: 'England U19 v Pakistan U19',
-      competition: 'One Day Internationals U19',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '0',
-      homeTeam: null,
-      awayTeam: null,
-      resultBlocked: true
-    },
-
-    {
-      id: 4,
-      mktId: ['1.262091392', '36039844'],
-      eventName: 'Namibia v South Africa',
-      competition: 'One Day Matches',
-      date: '09/09/2026 01:00:00 PM',
-      scoreId: '73712500',
-      homeTeam: 'Namibia',
-      awayTeam: 'South Africa',
-      resultBlocked: false
-    },
-
-    {
-      id: 5,
-      mktId: ['1.262122410', '36043082'],
-      eventName: 'Essex W v Yorkshire W',
-      competition: 'Metro Bank Womens One Day Cup',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '68579602',
-      homeTeam: 'Essex',
-      awayTeam: 'Yorkshire',
-      resultBlocked: false
-    },
-
-    {
-      id: 6,
-      mktId: ['-11203045', '-11202999'],
-      eventName: 'England U19 v Pakistan U19',
-      competition: 'One Day Internationals U19',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '0',
-      homeTeam: null,
-      awayTeam: null,
-      resultBlocked: true
-    },
-
-    {
-      id: 7,
-      mktId: ['1.262091392', '36039844'],
-      eventName: 'Namibia v South Africa',
-      competition: 'One Day Matches',
-      date: '09/09/2026 01:00:00 PM',
-      scoreId: '73712500',
-      homeTeam: 'Namibia',
-      awayTeam: 'South Africa',
-      resultBlocked: false
-    },
-
-    {
-      id: 8,
-      mktId: ['1.262122410', '36043082'],
-      eventName: 'Essex W v Yorkshire W',
-      competition: 'Metro Bank Womens One Day Cup',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '68579602',
-      homeTeam: 'Essex',
-      awayTeam: 'Yorkshire',
-      resultBlocked: false
-    },
-
-    {
-      id: 9,
-      mktId: ['-11203045', '-11202999'],
-      eventName: 'England U19 v Pakistan U19',
-      competition: 'One Day Internationals U19',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '0',
-      homeTeam: null,
-      awayTeam: null,
-      resultBlocked: true
-    }
-
-  ];
+  matches: any[] = [];
 
 
-  // ================= CONSTRUCTOR =================
+  // ==========================================
+  // CONSTRUCTOR
+  // ==========================================
 
-  constructor() {
+  constructor(
+    private apiService: Api,
+    @Inject(ToastrService)
+    private toastr: ToastrService
+  ) {}
 
-    this.updatePagination();
+
+  // ==========================================
+  // INIT
+  // ==========================================
+
+  ngOnInit(): void {
+    this.loadMatches();
+  }
+
+
+  // ==========================================
+  // LOAD MATCHES
+  // ==========================================
+
+  loadMatches(): void {
+
+    const sportMap: { [key: string]: string } = {
+      Cricket: '4',
+      Soccer: '1',
+      Tennis: '2'
+    };
+
+    this.sportsValue =
+      sportMap[this.selectedSport];
+
+    const payload = {
+      sportId: this.sportsValue
+    };
+
+    console.log('================================');
+    console.log('REQUEST:', payload);
+    console.log('================================');
+
+    this.isLoading = true;
+
+    this.apiService
+      .matchListApi(payload)
+      .pipe(
+        finalize(() => {
+
+          this.isLoading = false;
+
+          console.log(
+            'LOADING FINISHED:',
+            this.isLoading
+          );
+
+        })
+      )
+      .subscribe({
+
+        next: (response: any) => {
+
+          console.log(
+            'FULL API RESPONSE:',
+            response
+          );
+
+          // ==========================================
+          // MATCH DATA
+          // ==========================================
+
+          if (Array.isArray(response?.data)) {
+
+            this.matches = response.data;
+
+          } else {
+
+            this.matches = [];
+
+          }
+
+          console.log(
+            'TABLE MATCHES:',
+            this.matches
+          );
+
+          console.log(
+            'MATCH COUNT:',
+            this.matches.length
+          );
+
+        },
+
+
+        error: (error: any) => {
+
+          console.error(
+            'MATCH API ERROR:',
+            error
+          );
+
+          this.matches = [];
+
+          this.toastr.error(
+            'Failed to load matches',
+            'Error'
+          );
+
+        }
+
+      });
 
   }
 
 
-  // ================= PAGINATED DATA =================
+  // ==========================================
+  // SELECT SPORT
+  // ==========================================
 
-  get paginatedMatches() {
-
-    const startIndex =
-      (this.currentPage - 1) * this.pageSize;
-
-    const endIndex =
-      startIndex + this.pageSize;
-
-    return this.matches.slice(
-      startIndex,
-      endIndex
-    );
-
-  }
-
-
-  // ================= UPDATE PAGINATION =================
-
-  updatePagination() {
-
-    this.totalPages = Math.ceil(
-      this.matches.length / this.pageSize
-    );
-
-    this.pages = Array.from(
-      {
-        length: this.totalPages
-      },
-      (_, index) => index + 1
-    );
-
-  }
-
-
-  // ================= GO TO PAGE =================
-
-  goToPage(page: number) {
-
-    if (
-      page < 1 ||
-      page > this.totalPages
-    ) {
-      return;
-    }
-
-    this.currentPage = page;
-
-  }
-
-
-  // ================= NEXT PAGE =================
-
-  nextPage() {
-
-    if (
-      this.currentPage <
-      this.totalPages
-    ) {
-
-      this.currentPage++;
-
-    }
-
-  }
-
-
-  // ================= PREVIOUS PAGE =================
-
-  previousPage() {
-
-    if (
-      this.currentPage > 1
-    ) {
-
-      this.currentPage--;
-
-    }
-
-  }
-
-
-  // ================= CHANGE PAGE SIZE =================
-
-  changePageSize(size: number) {
-
-    this.pageSize = size;
-
-    // Always start from first page
-    this.currentPage = 1;
-
-    this.updatePagination();
-
-  }
-
-
-  // ================= SERIAL NUMBER =================
-
-  getSerialNumber(index: number): number {
-
-    return (
-      (this.currentPage - 1) *
-      this.pageSize
-    ) + index + 1;
-
-  }
-
-
-  // ================= START ITEM =================
-
-  getStartItem(): number {
-
-    if (this.matches.length === 0) {
-      return 0;
-    }
-
-    return (
-      (this.currentPage - 1) *
-      this.pageSize
-    ) + 1;
-
-  }
-
-
-  // ================= END ITEM =================
-
-  getEndItem(): number {
-
-    return Math.min(
-      this.currentPage *
-      this.pageSize,
-      this.matches.length
-    );
-
-  }
-
-
-  // ================= SPORT =================
-
-  selectSport(sport: string) {
+  selectSport(sport: string): void {
 
     this.selectedSport = sport;
 
-    // Reset pagination
-    this.currentPage = 1;
+    this.loadMatches();
 
   }
 
 
-  // ================= REFRESH =================
+  // ==========================================
+  // REFRESH
+  // ==========================================
 
-  refreshMatches() {
+  refreshMatches(): void {
 
-    console.log(
-      'Refresh match list'
+    this.loadMatches();
+
+  }
+
+
+  // ==========================================
+  // DISPLAY HELPERS
+  // ==========================================
+
+  getMarketIds(match: any): string[] {
+
+    const marketId =
+      match?.mktId ??
+      match?.marketId ??
+      [];
+
+    if (Array.isArray(marketId)) {
+
+      return marketId.filter(
+        (id) =>
+          id !== null &&
+          id !== undefined &&
+          String(id).trim() !== ''
+      );
+
+    }
+
+    return String(marketId)
+      .split(/\s+/)
+      .filter(
+        (id) => id.trim() !== ''
+      );
+
+  }
+
+
+  getCompetition(match: any): string {
+
+    return (
+      match?.competition ??
+      match?.competitionName ??
+      ''
     );
 
-    /*
-      Later:
+  }
 
-      this.loadMatchesFromAPI();
-    */
+
+  getMatchDate(match: any): string {
+
+    const rawDate =
+      match?.date ??
+      match?.openDate;
+
+    if (!rawDate) {
+      return '';
+    }
+
+    const parsedDate =
+      new Date(rawDate);
+
+    if (
+      Number.isNaN(
+        parsedDate.getTime()
+      )
+    ) {
+
+      return String(rawDate);
+
+    }
+
+    return parsedDate.toLocaleString();
 
   }
 
 
-  // ================= CHECK SCORE =================
+  // ==========================================
+  // CHECK SCORE
+  // ==========================================
 
-  checkScore(match: any) {
+  checkScore(match: any): void {
 
     console.log(
-      'Check Score',
+      'Check Score:',
       match
     );
 
   }
 
 
-  // ================= UPDATE TEAM NAMES =================
+  // ==========================================
+  // UPDATE TEAM NAMES
+  // ==========================================
 
   updateTeamNames(
     match: any,
     type: string
-  ) {
+  ): void {
 
     console.log(
-      'Update Team Names',
+      'Update Team Names:',
       type,
       match
     );
@@ -354,9 +282,11 @@ export class NewMatchesList {
   }
 
 
-  // ================= TOGGLE RESULT =================
+  // ==========================================
+  // RESULT
+  // ==========================================
 
-  toggleResult(match: any) {
+  toggleResult(match: any): void {
 
     match.resultBlocked =
       !match.resultBlocked;
@@ -364,24 +294,28 @@ export class NewMatchesList {
   }
 
 
-  // ================= OUR FANCY =================
+  // ==========================================
+  // OUR FANCY
+  // ==========================================
 
-  ourFancy(match: any) {
+  ourFancy(match: any): void {
 
     console.log(
-      'Our Fancy',
+      'Our Fancy:',
       match
     );
 
   }
 
 
-  // ================= ALL FANCY =================
+  // ==========================================
+  // ALL FANCY
+  // ==========================================
 
-  allFancy(match: any) {
+  allFancy(match: any): void {
 
     console.log(
-      'All Fancy',
+      'All Fancy:',
       match
     );
 
