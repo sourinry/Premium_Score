@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Api } from '../../../services/api';
 import { ToastrService } from 'ngx-toastr';
@@ -30,7 +30,7 @@ export class DomainWhitelisting implements OnInit {
 
   constructor(
     private api: Api,
-    private toastr: ToastrService,
+    @Inject(ToastrService) private toastr: ToastrService,
     private cdr: ChangeDetectorRef,
   ) {}
 

@@ -1,9 +1,11 @@
+/* ================= TABLE ================= */
+
 .matches-table {
   min-width: 1250px;
 }
 
 
-/* Table header */
+/* ================= TABLE HEADER ================= */
 
 .matches-table thead th {
   padding: 14px 12px;
@@ -11,20 +13,21 @@
   font-weight: 600;
   white-space: nowrap;
 }
+
+
+/* ================= TOOLBAR ================= */
+
 .match-toolbar {
   position: sticky;
   top: 0;
-
   z-index: 1030;
-
   background: #f8f9fa;
-
   padding: 15px 0;
-
   margin-bottom: 5px;
 }
 
-/* Table cells */
+
+/* ================= TABLE CELLS ================= */
 
 .matches-table tbody td {
   padding: 14px 12px;
@@ -32,28 +35,28 @@
 }
 
 
-/* Event column */
+/* ================= EVENT COLUMN ================= */
 
 .event-column {
   min-width: 270px;
 }
 
 
-/* Team sections */
+/* ================= TEAM SECTIONS ================= */
 
 .team-section {
   min-width: 190px;
 }
 
 
-/* Inputs */
+/* ================= INPUTS ================= */
 
 .team-section .form-control {
   border-radius: 6px;
 }
 
 
-/* Buttons */
+/* ================= BUTTONS ================= */
 
 .btn {
   border-radius: 7px;
@@ -61,14 +64,14 @@
 }
 
 
-/* Table hover */
+/* ================= TABLE HOVER ================= */
 
 .matches-table tbody tr {
   transition: background-color 0.15s ease;
 }
 
 
-/* Card */
+/* ================= CARD ================= */
 
 .card {
   border-radius: 12px;
@@ -76,7 +79,57 @@
 }
 
 
-/* Mobile */
+/* ================= PAGINATION ================= */
+
+.pagination {
+  margin-bottom: 0;
+}
+
+.pagination .page-link {
+  min-width: 36px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+.pagination .page-item:first-child .page-link,
+.pagination .page-item:last-child .page-link {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+
+/* ================= PAGE SIZE ================= */
+
+.form-select {
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+
+/* ================= PAGINATION CONTAINER ================= */
+
+.pagination-container {
+  background: #fff;
+}
+
+
+/* ================= LOADING ================= */
+
+.spinner-border {
+  width: 2rem;
+  height: 2rem;
+}
+
+
+/* ================= MOBILE ================= */
 
 @media (max-width: 768px) {
 
@@ -84,14 +137,43 @@
     padding: 15px !important;
   }
 
-  .container-fluid > .d-flex:first-child {
+
+  /* Toolbar */
+
+  .match-toolbar {
+    position: static;
+    overflow-x: auto;
+  }
+
+
+  .match-toolbar > div {
+    flex-wrap: wrap;
+  }
+
+
+  /* Table */
+
+  .matches-table {
+    min-width: 1250px;
+  }
+
+
+  /* Pagination */
+
+  .pagination-container {
     flex-direction: column;
     align-items: flex-start !important;
     gap: 15px;
   }
 
-  .container-fluid > .d-flex:first-child button {
+
+  .pagination-container > div {
     width: 100%;
+  }
+
+
+  .pagination {
+    flex-wrap: wrap;
   }
 
 }

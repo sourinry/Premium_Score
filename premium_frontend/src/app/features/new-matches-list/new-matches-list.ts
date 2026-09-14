@@ -1,6 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Api } from '../../../services/api';
+import { ToastrService } from 'ngx-toastr';
+import { finalize } from 'rxjs';
 
 @Component({
   selector: 'app-new-matches-list',
@@ -12,143 +15,310 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './new-matches-list.html',
   styleUrl: './new-matches-list.css'
 })
-export class NewMatchesList {
+export class NewMatchesList implements OnInit {
+
+  // ==========================================
+  // SPORT
+  // ==========================================
 
   selectedSport = 'Cricket';
 
-  matches = [
-    {
-      id: 1,
-      mktId: ['1.262091392', '36039844'],
-      eventName: 'Namibia v South Africa',
-      competition: 'One Day Matches',
-      date: '09/09/2026 01:00:00 PM',
-      scoreId: '73712500',
-      homeTeam: 'Namibia',
-      awayTeam: 'South Africa',
-      resultBlocked: false
-    },
+  sportsValue = '';
 
-    {
-      id: 2,
-      mktId: ['1.262122410', '36043082'],
-      eventName: 'Essex W v Yorkshire W',
-      competition: 'Metro Bank Womens One Day Cup',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '68579602',
-      homeTeam: 'Essex',
-      awayTeam: 'Yorkshire',
-      resultBlocked: false
-    },
 
-    {
-      id: 3,
-      mktId: ['-11203045', '-11202999'],
-      eventName: 'England U19 v Pakistan U19',
-      competition: 'One Day Internationals U19',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '0',
-      homeTeam: null,
-      awayTeam: null,
-      resultBlocked: true
-    },
-    {
-      id: 4,
-      mktId: ['1.262091392', '36039844'],
-      eventName: 'Namibia v South Africa',
-      competition: 'One Day Matches',
-      date: '09/09/2026 01:00:00 PM',
-      scoreId: '73712500',
-      homeTeam: 'Namibia',
-      awayTeam: 'South Africa',
-      resultBlocked: false
-    },
+  // ==========================================
+  // LOADING
+  // ==========================================
 
-    {
-      id: 5,
-      mktId: ['1.262122410', '36043082'],
-      eventName: 'Essex W v Yorkshire W',
-      competition: 'Metro Bank Womens One Day Cup',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '68579602',
-      homeTeam: 'Essex',
-      awayTeam: 'Yorkshire',
-      resultBlocked: false
-    },
+  isLoading = false;
 
-    {
-      id: 6,
-      mktId: ['-11203045', '-11202999'],
-      eventName: 'England U19 v Pakistan U19',
-      competition: 'One Day Internationals U19',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '0',
-      homeTeam: null,
-      awayTeam: null,
-      resultBlocked: true
-    },
-    {
-      id: 7,
-      mktId: ['1.262091392', '36039844'],
-      eventName: 'Namibia v South Africa',
-      competition: 'One Day Matches',
-      date: '09/09/2026 01:00:00 PM',
-      scoreId: '73712500',
-      homeTeam: 'Namibia',
-      awayTeam: 'South Africa',
-      resultBlocked: false
-    },
 
-    {
-      id: 8,
-      mktId: ['1.262122410', '36043082'],
-      eventName: 'Essex W v Yorkshire W',
-      competition: 'Metro Bank Womens One Day Cup',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '68579602',
-      homeTeam: 'Essex',
-      awayTeam: 'Yorkshire',
-      resultBlocked: false
-    },
+  // ==========================================
+  // MATCH DATA
+  // ==========================================
 
-    {
-      id: 9,
-      mktId: ['-11203045', '-11202999'],
-      eventName: 'England U19 v Pakistan U19',
-      competition: 'One Day Internationals U19',
-      date: '09/09/2026 03:00:00 PM',
-      scoreId: '0',
-      homeTeam: null,
-      awayTeam: null,
-      resultBlocked: true
-    }
-  ];
+  matches: any[] = [];
 
-  selectSport(sport: string) {
+
+  // ==========================================
+  // CONSTRUCTOR
+  // ==========================================
+
+  constructor(
+    private apiService: Api,
+    @Inject(ToastrService)
+    private toastr: ToastrService
+  ) {}
+
+
+  // ==========================================
+  // INIT
+  // ==========================================
+
+  ngOnInit(): void {
+    this.loadMatches();
+  }
+
+
+  // ==========================================
+  // LOAD MATCHES
+  // ==========================================
+
+  loadMatches(): void {
+
+    const sportMap: { [key: string]: string } = {
+      Cricket: '4',
+      Soccer: '1',
+      Tennis: '2'
+    };
+
+    this.sportsValue =
+      sportMap[this.selectedSport];
+
+    const payload = {
+      sportId: this.sportsValue
+    };
+
+    console.log('================================');
+    console.log('REQUEST:', payload);
+    console.log('================================');
+
+    this.isLoading = true;
+
+    this.apiService
+      .matchListApi(payload)
+      .pipe(
+        finalize(() => {
+
+          this.isLoading = false;
+
+          console.log(
+            'LOADING FINISHED:',
+            this.isLoading
+          );
+
+        })
+      )
+      .subscribe({
+
+        next: (response: any) => {
+
+          console.log(
+            'FULL API RESPONSE:',
+            response
+          );
+
+          // ==========================================
+          // MATCH DATA
+          // ==========================================
+
+          if (Array.isArray(response?.data)) {
+
+            this.matches = response.data;
+
+          } else {
+
+            this.matches = [];
+
+          }
+
+          console.log(
+            'TABLE MATCHES:',
+            this.matches
+          );
+
+          console.log(
+            'MATCH COUNT:',
+            this.matches.length
+          );
+
+        },
+
+
+        error: (error: any) => {
+
+          console.error(
+            'MATCH API ERROR:',
+            error
+          );
+
+          this.matches = [];
+
+          this.toastr.error(
+            'Failed to load matches',
+            'Error'
+          );
+
+        }
+
+      });
+
+  }
+
+
+  // ==========================================
+  // SELECT SPORT
+  // ==========================================
+
+  selectSport(sport: string): void {
+
     this.selectedSport = sport;
+
+    this.loadMatches();
+
   }
 
-  refreshMatches() {
-    console.log('Refresh match list');
+
+  // ==========================================
+  // REFRESH
+  // ==========================================
+
+  refreshMatches(): void {
+
+    this.loadMatches();
+
   }
 
-  checkScore(match: any) {
-    console.log('Check Score', match);
+
+  // ==========================================
+  // DISPLAY HELPERS
+  // ==========================================
+
+  getMarketIds(match: any): string[] {
+
+    const marketId =
+      match?.mktId ??
+      match?.marketId ??
+      [];
+
+    if (Array.isArray(marketId)) {
+
+      return marketId.filter(
+        (id) =>
+          id !== null &&
+          id !== undefined &&
+          String(id).trim() !== ''
+      );
+
+    }
+
+    return String(marketId)
+      .split(/\s+/)
+      .filter(
+        (id) => id.trim() !== ''
+      );
+
   }
 
-  updateTeamNames(match: any, type: string) {
-    console.log('Update Team Names', type, match);
+
+  getCompetition(match: any): string {
+
+    return (
+      match?.competition ??
+      match?.competitionName ??
+      ''
+    );
+
   }
 
-  toggleResult(match: any) {
-    match.resultBlocked = !match.resultBlocked;
+
+  getMatchDate(match: any): string {
+
+    const rawDate =
+      match?.date ??
+      match?.openDate;
+
+    if (!rawDate) {
+      return '';
+    }
+
+    const parsedDate =
+      new Date(rawDate);
+
+    if (
+      Number.isNaN(
+        parsedDate.getTime()
+      )
+    ) {
+
+      return String(rawDate);
+
+    }
+
+    return parsedDate.toLocaleString();
+
   }
 
-  ourFancy(match: any) {
-    console.log('Our Fancy', match);
+
+  // ==========================================
+  // CHECK SCORE
+  // ==========================================
+
+  checkScore(match: any): void {
+
+    console.log(
+      'Check Score:',
+      match
+    );
+
   }
 
-  allFancy(match: any) {
-    console.log('All Fancy', match);
+
+  // ==========================================
+  // UPDATE TEAM NAMES
+  // ==========================================
+
+  updateTeamNames(
+    match: any,
+    type: string
+  ): void {
+
+    console.log(
+      'Update Team Names:',
+      type,
+      match
+    );
+
   }
+
+
+  // ==========================================
+  // RESULT
+  // ==========================================
+
+  toggleResult(match: any): void {
+
+    match.resultBlocked =
+      !match.resultBlocked;
+
+  }
+
+
+  // ==========================================
+  // OUR FANCY
+  // ==========================================
+
+  ourFancy(match: any): void {
+
+    console.log(
+      'Our Fancy:',
+      match
+    );
+
+  }
+
+
+  // ==========================================
+  // ALL FANCY
+  // ==========================================
+
+  allFancy(match: any): void {
+
+    console.log(
+      'All Fancy:',
+      match
+    );
+
+  }
+
 }
