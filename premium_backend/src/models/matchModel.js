@@ -64,6 +64,17 @@ const matchSchema = new mongoose.Schema(
       default: "All",
     },
 
+
+    homeTeam: {
+      type: String,
+      default: null,
+    },
+
+    awayTeam: {
+      type: String,
+      default: null,
+    },
+
     inning_info: {
       type: mongoose.Schema.Types.Mixed,
       default: null,
