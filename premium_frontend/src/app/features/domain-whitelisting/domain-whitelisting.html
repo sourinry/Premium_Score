@@ -22,10 +22,10 @@
 
     </div>
 
-
     <!-- ADD BUTTON -->
 
     <button
+      type="button"
       class="add-btn"
       (click)="openAddPopup()"
     >
@@ -45,68 +45,73 @@
   <!-- FILTER BUTTONS -->
   <!-- ================================================= -->
 
-<div class="filter-section">
+  <div class="filter-section">
 
-  <!-- ALL -->
-  <button
-    type="button"
-    class="filter-btn"
-    [class.active]="selectedFilter === 'all'"
-    (click)="filterWebsites('all')"
-  >
-    All
-  </button>
+    <!-- ALL -->
 
-
-  <!-- PREMIUM -->
-  <button
-    type="button"
-    class="filter-btn"
-    [class.active]="selectedFilter === 'premium'"
-    (click)="filterWebsites('premium')"
-  >
-    Premium
-  </button>
+    <button
+      type="button"
+      class="filter-btn"
+      [class.active]="selectedFilter === 'all'"
+      (click)="filterWebsites('all')"
+    >
+      All
+    </button>
 
 
-  <!-- SHOW RESULT -->
-  <button
-    type="button"
-    class="filter-btn"
-    [class.active]="selectedFilter === 'showResult'"
-    (click)="filterWebsites('showResult')"
-  >
-    Show Result
-  </button>
+    <!-- PREMIUM -->
+
+    <button
+      type="button"
+      class="filter-btn"
+      [class.active]="selectedFilter === 'premium'"
+      (click)="filterWebsites('premium')"
+    >
+      Premium
+    </button>
 
 
-  <!-- UNREGISTERED -->
-  <button
-    type="button"
-    class="filter-btn"
-    [class.active]="selectedFilter === 'unregistered'"
-    (click)="filterWebsites('unregistered')"
-  >
-    UnRegistered Web
-  </button>
+    <!-- SHOW RESULT -->
+
+    <button
+      type="button"
+      class="filter-btn"
+      [class.active]="selectedFilter === 'showResult'"
+      (click)="filterWebsites('showResult')"
+    >
+      Show Result
+    </button>
 
 
-  <!-- ALL BLOCK -->
-  <button
-    type="button"
-    class="block-btn"
-  >
-    All Block
-  </button>
+    <!-- UNREGISTERED -->
 
-</div>
+    <button
+      type="button"
+      class="filter-btn"
+      [class.active]="selectedFilter === 'unregistered'"
+      (click)="filterWebsites('unregistered')"
+    >
+      UnRegistered Web
+    </button>
+
+
+    <!-- ALL BLOCK -->
+
+    <button
+      type="button"
+      class="block-btn"
+    >
+      All Block
+    </button>
+
+  </div>
+
 
   <!-- ================================================= -->
   <!-- STATISTICS -->
   <!-- ================================================= -->
 
   <div class="stats-container">
-
 
     <!-- TOTAL WEBSITES -->
 
@@ -185,7 +190,6 @@
 
   <div class="table-card">
 
-
     <!-- TABLE HEADER -->
 
     <div class="table-header">
@@ -223,240 +227,268 @@
     <!-- TABLE -->
     <!-- ================================================= -->
 
+    <div class="table-wrapper">
 
-<div class="table-wrapper">
+      <table>
 
-  <table>
+        <!-- TABLE HEAD -->
 
-    <!-- TABLE HEAD -->
-    <thead>
+        <thead>
 
-      <tr>
+          <tr>
 
-        <th>S.No</th>
+            <th>S.No</th>
 
-        <th>Website</th>
+            <th>Website</th>
 
-        <th>Domain URL</th>
+            <th>Domain URL</th>
 
-        <th>End Point</th>
+            <th>End Point</th>
 
-        <th>Type</th>
+            <th>Type</th>
 
-        <th>Status</th>
+            <th>Status</th>
 
-        <th>Action</th>
+            <th>Action</th>
 
-      </tr>
+          </tr>
 
-    </thead>
-
-
-    <!-- TABLE BODY -->
-<tbody>
-
-  @for (
-    website of filteredWebsites;
-    track website._id;
-    let i = $index
-  ) {
-
-    <tr>
-
-      <!-- S.NO -->
-      <td>
-        <span class="serial">
-          {{ i + 1 }}
-        </span>
-      </td>
+        </thead>
 
 
-      <!-- WEBSITE -->
-      <td>
+        <!-- TABLE BODY -->
 
-        <div class="website-info">
+        <tbody>
 
-          <div class="website-logo">
-            {{
-              website.websiteName?.charAt(0)?.toUpperCase()
-            }}
-          </div>
+          @for (
+            website of filteredWebsites;
+            track website._id;
+            let i = $index
+          ) {
 
-          <div>
+            <tr>
 
-            <strong>
-              {{ website.websiteName }}
-            </strong>
+              <!-- S.NO -->
 
-            <small>
-              {{
-                website.isRegistered
-                  ? 'Registered Website'
-                  : 'Unregistered Website'
-              }}
-            </small>
+              <td>
 
-          </div>
+                <span class="serial">
+                  {{ i + 1 }}
+                </span>
 
-        </div>
-
-      </td>
+              </td>
 
 
-      <!-- DOMAIN URL -->
-      <td>
+              <!-- WEBSITE -->
 
-        <span class="domain">
-          {{ website.domainUrl }}
-        </span>
+              <td>
 
-      </td>
+                <div class="website-info">
+
+                  <div class="website-logo">
+
+                    {{
+                      website.websiteName?.charAt(0)?.toUpperCase()
+                    }}
+
+                  </div>
+
+                  <div>
+
+                    <strong>
+                      {{ website.websiteName }}
+                    </strong>
+
+                    <small>
+
+                      {{
+                        website.isRegistered
+                          ? 'Registered Website'
+                          : 'Unregistered Website'
+                      }}
+
+                    </small>
+
+                  </div>
+
+                </div>
+
+              </td>
 
 
-      <!-- ENDPOINT -->
-      <td>
+              <!-- DOMAIN URL -->
 
-        <span class="endpoint">
+              <td>
 
-          @if (website.type?.includes('premium')) {
+                <span class="domain">
+                  {{ website.domainUrl }}
+                </span>
 
-            {{ website.premium?.endpoint || '-' }}
+              </td>
+
+
+              <!-- ENDPOINT -->
+
+              <td>
+
+                <span class="endpoint">
+
+                  @if (website.type?.includes('premium')) {
+
+                    {{ website.premium?.endpoint || '-' }}
+
+                  }
+
+                  @else if (website.type?.includes('showResult')) {
+
+                    {{ website.showResult?.endpoint || '-' }}
+
+                  }
+
+                  @else {
+
+                    -
+
+                  }
+
+                </span>
+
+              </td>
+
+
+              <!-- TYPE -->
+
+              <td>
+
+                @if (
+                  website.type?.includes('premium') &&
+                  website.type?.includes('showResult')
+                ) {
+
+                  <span class="badge premium">
+                    ★ Premium
+                  </span>
+
+                  <span class="badge result">
+                    Show Result
+                  </span>
+
+                }
+
+                @else if (website.type?.includes('premium')) {
+
+                  <span class="badge premium">
+                    ★ Premium
+                  </span>
+
+                }
+
+                @else if (website.type?.includes('showResult')) {
+
+                  <span class="badge result">
+                    Show Result
+                  </span>
+
+                }
+
+                @else {
+
+                  <span class="badge result">
+                    -
+                  </span>
+
+                }
+
+              </td>
+
+
+              <!-- STATUS -->
+
+              <td>
+
+                <span
+                  class="status"
+                  [style.color]="
+                    website.isRegistered && !website.isDeleted
+                      ? '#16a34a'
+                      : '#dc2626'
+                  "
+                >
+
+                  <span
+                    class="status-dot"
+                    [style.background]="
+                      website.isRegistered && !website.isDeleted
+                        ? '#22c55e'
+                        : '#ef4444'
+                    "
+                  ></span>
+
+                  {{
+                    website.isRegistered && !website.isDeleted
+                      ? 'Active'
+                      : 'Unregistered'
+                  }}
+
+                </span>
+
+              </td>
+
+
+              <!-- ACTION -->
+
+              <td>
+
+                <div class="actions">
+
+                  <button
+                    type="button"
+                    class="edit-btn"
+                    (click)="editWebsite(website)"
+                  >
+                    Edit
+                  </button>
+
+
+                  <button
+                    type="button"
+                    class="delete-btn"
+                    (click)="unregisterWebsite(website)"
+                  >
+                    Unregister
+                  </button>
+
+                </div>
+
+              </td>
+
+            </tr>
 
           }
 
-          @else if (website.type?.includes('showResult')) {
 
-            {{ website.showResult?.endpoint || '-' }}
+          <!-- EMPTY STATE -->
+
+          @if (filteredWebsites.length === 0) {
+
+            <tr>
+
+              <td
+                colspan="7"
+                class="empty"
+              >
+                No whitelisted websites found.
+              </td>
+
+            </tr>
 
           }
 
-          @else {
+        </tbody>
 
-            -
+      </table>
 
-          }
-
-        </span>
-
-      </td>
-
-
-      <!-- TYPE -->
-      <td>
-
-        @if (website.type?.includes('premium')) {
-
-          <span class="badge premium">
-            ★ Premium
-          </span>
-
-        }
-
-        @else if (website.type?.includes('showResult')) {
-
-          <span class="badge result">
-            Show Result
-          </span>
-
-        }
-
-        @else {
-
-          <span class="badge result">
-            -
-          </span>
-
-        }
-
-      </td>
-
-
-      <!-- STATUS -->
-      <td>
-
-        <span
-          class="status"
-          [style.color]="
-            website.isRegistered && !website.isDeleted
-              ? '#16a34a'
-              : '#dc2626'
-          "
-        >
-
-          <span
-            class="status-dot"
-            [style.background]="
-              website.isRegistered && !website.isDeleted
-                ? '#22c55e'
-                : '#ef4444'
-            "
-          ></span>
-
-          {{
-            website.isRegistered && !website.isDeleted
-              ? 'Active'
-              : 'Unregistered'
-          }}
-
-        </span>
-
-      </td>
-
-
-      <!-- ACTION -->
-      <td>
-
-        <div class="actions">
-
-          <button
-            type="button"
-            class="edit-btn"
-            (click)="editWebsite(website)"
-          >
-            Edit
-          </button>
-
-
-          <button
-            type="button"
-            class="delete-btn"
-             (click)="unregisterWebsite(website)"
-          >
-            Unregister
-          </button>
-
-        </div>
-
-      </td>
-
-    </tr>
-
-  }
-
-
-  <!-- EMPTY STATE -->
-  @if (filteredWebsites.length === 0) {
-
-    <tr>
-
-      <td
-        colspan="7"
-        class="empty"
-      >
-        No whitelisted websites found.
-      </td>
-
-    </tr>
-
-  }
-
-</tbody>
-
-  </table>
-
-</div>
-
-
+    </div>
 
   </div>
 
@@ -464,7 +496,7 @@
 
 
 <!-- ================================================= -->
-<!-- ADD WHITELISTING MODAL -->
+<!-- ADD / EDIT WHITELISTING MODAL -->
 <!-- ================================================= -->
 
 @if (showPopup) {
@@ -474,12 +506,10 @@
     (click)="closePopup()"
   >
 
-
     <div
       class="modal"
       (click)="$event.stopPropagation()"
     >
-
 
       <!-- ================================================= -->
       <!-- MODAL HEADER -->
@@ -489,20 +519,26 @@
 
         <div class="modal-title">
 
-
           <div class="modal-icon">
             +
           </div>
 
-
           <div>
 
             <h2>
-              Add Whitelisting
+              {{
+                isEditMode
+                  ? 'Edit Whitelisting'
+                  : 'Add Whitelisting'
+              }}
             </h2>
 
             <p>
-              Register a new website
+              {{
+                isEditMode
+                  ? 'Update website details'
+                  : 'Register a new website'
+              }}
             </p>
 
           </div>
@@ -513,6 +549,7 @@
         <!-- CLOSE -->
 
         <button
+          type="button"
           class="close-btn"
           (click)="closePopup()"
         >
@@ -527,7 +564,6 @@
       <!-- ================================================= -->
 
       <div class="form-container">
-
 
         <!-- WEBSITE NAME -->
 
@@ -546,6 +582,7 @@
           <input
             type="text"
             placeholder="Enter website name"
+            [(ngModel)]="websiteName"
           />
 
         </div>
@@ -568,6 +605,7 @@
           <input
             type="text"
             placeholder="https://example.com"
+            [(ngModel)]="domainUrl"
           />
 
         </div>
@@ -578,7 +616,6 @@
         <!-- ================================================= -->
 
         <div class="options">
-
 
           <!-- PREMIUM -->
 
@@ -642,14 +679,11 @@
 
           <div class="endpoint-section premium-section">
 
-
             <div class="section-title">
               Premium
             </div>
 
-
             <div class="endpoint-content">
-
 
               <!-- PREMIUM ENDPOINT -->
 
@@ -661,8 +695,8 @@
 
                 <input
                   type="text"
-                  value="setPremFancyResultThreadCommon"
                   placeholder="Premium End Point"
+                  [(ngModel)]="premiumEndpoint"
                 />
 
               </div>
@@ -678,8 +712,8 @@
 
                 <input
                   type="text"
-                  value="rollbackCommonPremFancyResult"
                   placeholder="RollBack End Point"
+                  [(ngModel)]="premiumRollbackEndpoint"
                 />
 
               </div>
@@ -699,14 +733,11 @@
 
           <div class="endpoint-section result-section">
 
-
             <div class="section-title">
               Show Result
             </div>
 
-
             <div class="endpoint-content">
-
 
               <!-- SHOW RESULT ENDPOINT -->
 
@@ -719,6 +750,7 @@
                 <input
                   type="text"
                   placeholder="Show Result End Point"
+                  [(ngModel)]="showResultEndpoint"
                 />
 
               </div>
@@ -735,6 +767,7 @@
                 <input
                   type="text"
                   placeholder="RollBack End Point"
+                  [(ngModel)]="showResultRollbackEndpoint"
                 />
 
               </div>
@@ -754,10 +787,10 @@
 
       <div class="modal-footer">
 
-
         <!-- CANCEL -->
 
         <button
+          type="button"
           class="cancel-btn"
           (click)="closePopup()"
         >
@@ -765,13 +798,20 @@
         </button>
 
 
-        <!-- SAVE -->
+        <!-- SAVE / UPDATE -->
 
         <button
+          type="button"
           class="save-btn"
           (click)="addWebsite()"
         >
-          + Add Website
+
+          {{
+            isEditMode
+              ? 'Update Website'
+              : '+ Add Website'
+          }}
+
         </button>
 
       </div>
@@ -781,3 +821,4 @@
   </div>
 
 }
+

@@ -25,4 +25,18 @@ export class Api {
   getUnregisteredWebsites() {
   return this.http.get(`${this.baseApiUrl}/websites/unregistered`);
 }
+
+addWebsite(payload: any) {
+  return this.http.post(
+    `${this.baseApiUrl}/websites`,
+    payload
+  );
+}
+
+updateWebsite(websiteId: string, payload: any) {
+  return this.http.put(
+    `${this.baseApiUrl}/websites/${websiteId}`,
+    payload
+  );
+}
 }
