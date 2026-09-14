@@ -15,7 +15,6 @@ app.use(express.urlencoded({ extended: true }));
 
 startMatchScheduler();
 
-console.log("🔥 APP.JS LOADED");
 
 app.get("/", (req, res) => {
   console.log("🔥 ROOT HIT");
@@ -26,18 +25,8 @@ app.get("/", (req, res) => {
   });
 });
 
-app.get("/api/v1/test", (req, res) => {
-  console.log("🔥 TEST ROUTE HIT");
 
-  res.json({
-    success: true,
-    message: "API v1 is working",
-  });
-});
 
-// ================================
-// API V1
-// ================================
 
 app.use("/api/v1", routes);
 
