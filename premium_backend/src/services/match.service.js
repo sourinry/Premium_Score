@@ -1,3 +1,4 @@
+
 const Match = require("../models/matchModel");
 
 const getMatches = async (filters = {}) => {
@@ -7,26 +8,30 @@ const getMatches = async (filters = {}) => {
       isResult,
       matchType,
       search,
-      page = 1,
-      limit = 20,
+      limit = 100,
     } = filters;
 
     const query = {
       isOld: false,
     };
 
+    // Sport filter
     if (sportId !== undefined && sportId !== null && sportId !== "") {
       query.sportId = Number(sportId);
     }
 
+    // Result filter
     if (isResult !== undefined && isResult !== null && isResult !== "") {
-      query.isResult = String(isResult).toLowerCase() === "true";
+      query.isResult =
+        String(isResult).toLowerCase() === "true";
     }
 
+    // Match type filter
     if (matchType !== undefined && matchType !== null && matchType !== "") {
       query.matchType = matchType;
     }
 
+    // Search filter
     if (
       search !== undefined &&
       search !== null &&
@@ -62,18 +67,17 @@ const getMatches = async (filters = {}) => {
       ];
     }
 
-    const currentPage = Math.max(parseInt(page, 10) || 1, 1);
-
-    const currentLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
-
-    const skip = (currentPage - 1) * currentLimit;
+    // Maximum 100
+    const currentLimit = Math.min(
+      Math.max(parseInt(limit, 10) || 100, 1),
+      100
+    );
 
     const [matches, total] = await Promise.all([
       Match.find(query)
         .sort({
           openDate: 1,
         })
-        .skip(skip)
         .limit(currentLimit)
         .lean(),
 
@@ -83,15 +87,16 @@ const getMatches = async (filters = {}) => {
     return {
       matches,
       total,
-      page: currentPage,
       limit: currentLimit,
-      totalPages: Math.ceil(total / currentLimit),
     };
   } catch (error) {
     console.error("❌ Match service getMatches error:", error);
-
     throw error;
   }
+};
+
+module.exports = {
+  getMatches,
 };
 
 const getOldMatches = async (filters = {}) => {

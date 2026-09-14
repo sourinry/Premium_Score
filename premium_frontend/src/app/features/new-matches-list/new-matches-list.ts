@@ -4,7 +4,6 @@ import { FormsModule } from '@angular/forms';
 import { Api } from '../../../services/api';
 import { ToastrService } from 'ngx-toastr';
 import { finalize } from 'rxjs';
-
 @Component({
   selector: 'app-new-matches-list',
   standalone: true,
@@ -41,6 +40,21 @@ export class NewMatchesList implements OnInit {
 
 
   // ==========================================
+  // PAGINATION
+  // ==========================================
+
+  currentPage = 1;
+
+  pageSize = 25;
+
+  totalItems = 0;
+
+  totalPages = 0;
+
+  pageSizeOptions = [10, 25, 50, 100];
+
+
+  // ==========================================
   // CONSTRUCTOR
   // ==========================================
 
@@ -64,96 +78,108 @@ export class NewMatchesList implements OnInit {
   // LOAD MATCHES
   // ==========================================
 
-  loadMatches(): void {
+loadMatches(): void {
 
-    const sportMap: { [key: string]: string } = {
-      Cricket: '4',
-      Soccer: '1',
-      Tennis: '2'
-    };
+  const sportMap: { [key: string]: string } = {
+    Cricket: '4',
+    Soccer: '1',
+    Tennis: '2'
+  };
 
-    this.sportsValue =
-      sportMap[this.selectedSport];
+  this.sportsValue = sportMap[this.selectedSport];
 
-    const payload = {
-      sportId: this.sportsValue
-    };
+  const payload = {
+    page: this.currentPage,
+    limit: this.pageSize,
+    sportId: this.sportsValue
+  };
 
-    console.log('================================');
-    console.log('REQUEST:', payload);
-    console.log('================================');
+  console.log('REQUEST:', payload);
 
-    this.isLoading = true;
+  this.isLoading = true;
 
-    this.apiService
-      .matchListApi(payload)
-      .pipe(
-        finalize(() => {
+  this.apiService
+    .matchListApi(payload)
+    .pipe(
+      finalize(() => {
+        console.log('LOADING FALSE');
 
-          this.isLoading = false;
+        this.isLoading = false;
+      })
+    )
+    .subscribe({
 
-          console.log(
-            'LOADING FINISHED:',
-            this.isLoading
-          );
+      next: (response: any) => {
 
-        })
-      )
-      .subscribe({
+        console.log('API RESPONSE:', response);
 
-        next: (response: any) => {
+        // =====================================
+        // MATCH DATA
+        // =====================================
 
-          console.log(
-            'FULL API RESPONSE:',
-            response
-          );
-
-          // ==========================================
-          // MATCH DATA
-          // ==========================================
-
-          if (Array.isArray(response?.data)) {
-
-            this.matches = response.data;
-
-          } else {
-
-            this.matches = [];
-
-          }
-
-          console.log(
-            'TABLE MATCHES:',
-            this.matches
-          );
-
-          console.log(
-            'MATCH COUNT:',
-            this.matches.length
-          );
-
-        },
-
-
-        error: (error: any) => {
-
-          console.error(
-            'MATCH API ERROR:',
-            error
-          );
-
+        if (Array.isArray(response?.data)) {
+          this.matches = response.data;
+        } else {
           this.matches = [];
-
-          this.toastr.error(
-            'Failed to load matches',
-            'Error'
-          );
-
         }
 
-      });
 
-  }
+        // =====================================
+        // PAGINATION
+        // =====================================
+
+        this.totalItems =
+          Number(response?.total ?? 0);
+
+        this.currentPage =
+          Number(
+            response?.page ?? this.currentPage
+          );
+
+        this.pageSize =
+          Number(
+            response?.limit ?? this.pageSize
+          );
+
+        this.totalPages =
+          Number(
+            response?.totalPages ?? 0
+          );
+
+
+        console.log('MATCH COUNT:', this.matches.length);
+        console.log('TOTAL:', this.totalItems);
+        console.log('PAGE:', this.currentPage);
+        console.log('LIMIT:', this.pageSize);
+        console.log('TOTAL PAGES:', this.totalPages);
+
+      },
+
+      error: (error: any) => {
+
+        console.error(
+          'MATCH API ERROR:',
+          error
+        );
+
+        this.matches = [];
+
+        this.totalItems = 0;
+
+        this.totalPages = 0;
+
+        this.toastr.error(
+          'Failed to load matches',
+          'Error'
+        );
+
+      }
+
+    });
+
+}
+
+
 
 
   // ==========================================
@@ -163,6 +189,9 @@ export class NewMatchesList implements OnInit {
   selectSport(sport: string): void {
 
     this.selectedSport = sport;
+
+    // Sport change par first page
+    this.currentPage = 1;
 
     this.loadMatches();
 
@@ -176,6 +205,188 @@ export class NewMatchesList implements OnInit {
   refreshMatches(): void {
 
     this.loadMatches();
+
+  }
+
+
+  // ==========================================
+  // CHANGE PAGE SIZE
+  // ==========================================
+
+  changePageSize(): void {
+
+    console.log(
+      'PAGE SIZE CHANGED:',
+      this.pageSize
+    );
+
+    // Page size change hone par
+    // hamesha first page par jao
+    this.currentPage = 1;
+
+    this.loadMatches();
+
+  }
+
+
+  // ==========================================
+  // CHANGE PAGE
+  // ==========================================
+
+  changePage(page: number): void {
+
+    if (page < 1) {
+      return;
+    }
+
+    if (page > this.totalPages) {
+      return;
+    }
+
+    if (page === this.currentPage) {
+      return;
+    }
+
+    this.currentPage = page;
+
+    this.loadMatches();
+
+  }
+
+
+  // ==========================================
+  // FIRST PAGE
+  // ==========================================
+
+  firstPage(): void {
+
+    if (this.currentPage === 1) {
+      return;
+    }
+
+    this.currentPage = 1;
+
+    this.loadMatches();
+
+  }
+
+
+  // ==========================================
+  // PREVIOUS PAGE
+  // ==========================================
+
+  previousPage(): void {
+
+    if (this.currentPage <= 1) {
+      return;
+    }
+
+    this.currentPage--;
+
+    this.loadMatches();
+
+  }
+
+
+  // ==========================================
+  // NEXT PAGE
+  // ==========================================
+
+  nextPage(): void {
+
+    if (this.currentPage >= this.totalPages) {
+      return;
+    }
+
+    this.currentPage++;
+
+    this.loadMatches();
+
+  }
+
+
+  // ==========================================
+  // LAST PAGE
+  // ==========================================
+
+  lastPage(): void {
+
+    if (
+      this.currentPage === this.totalPages ||
+      this.totalPages === 0
+    ) {
+      return;
+    }
+
+    this.currentPage = this.totalPages;
+
+    this.loadMatches();
+
+  }
+
+
+  // ==========================================
+  // PAGE NUMBERS
+  // ==========================================
+
+  getPages(): number[] {
+
+    if (this.totalPages <= 0) {
+      return [];
+    }
+
+    return Array.from(
+      {
+        length: this.totalPages
+      },
+      (_, index) => index + 1
+    );
+
+  }
+
+
+  // ==========================================
+  // START ITEM
+  // ==========================================
+
+  getStartItem(): number {
+
+    if (this.totalItems === 0) {
+      return 0;
+    }
+
+    return (
+      (this.currentPage - 1) *
+      this.pageSize
+    ) + 1;
+
+  }
+
+
+  // ==========================================
+  // END ITEM
+  // ==========================================
+
+  getEndItem(): number {
+
+    return Math.min(
+      this.currentPage * this.pageSize,
+      this.totalItems
+    );
+
+  }
+
+
+  // ==========================================
+  // SERIAL NUMBER
+  // ==========================================
+
+  getSerialNumber(index: number): number {
+
+    return (
+      (this.currentPage - 1) *
+      this.pageSize
+    ) + index + 1;
 
   }
 
@@ -199,6 +410,16 @@ export class NewMatchesList implements OnInit {
           id !== undefined &&
           String(id).trim() !== ''
       );
+
+    }
+
+    if (
+      marketId === null ||
+      marketId === undefined ||
+      String(marketId).trim() === ''
+    ) {
+
+      return [];
 
     }
 

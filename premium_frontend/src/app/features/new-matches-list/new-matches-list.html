@@ -6,10 +6,14 @@
 
   <div class="match-toolbar mb-3">
 
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 flex-wrap">
 
-      <!-- Cricket -->
+      <!-- ===================================== -->
+      <!-- CRICKET -->
+      <!-- ===================================== -->
+
       <button
+        type="button"
         class="btn"
         [ngClass]="
           selectedSport === 'Cricket'
@@ -22,8 +26,12 @@
       </button>
 
 
-      <!-- Soccer -->
+      <!-- ===================================== -->
+      <!-- SOCCER -->
+      <!-- ===================================== -->
+
       <button
+        type="button"
         class="btn"
         [ngClass]="
           selectedSport === 'Soccer'
@@ -36,8 +44,12 @@
       </button>
 
 
-      <!-- Tennis -->
+      <!-- ===================================== -->
+      <!-- TENNIS -->
+      <!-- ===================================== -->
+
       <button
+        type="button"
         class="btn"
         [ngClass]="
           selectedSport === 'Tennis'
@@ -50,17 +62,23 @@
       </button>
 
 
-      <!-- Refresh -->
+      <!-- ===================================== -->
+      <!-- REFRESH -->
+      <!-- ===================================== -->
+
       <button
+        type="button"
         class="btn btn-dark shadow-sm"
         [disabled]="isLoading"
         (click)="refreshMatches()"
       >
+
         <span class="me-2">
           ↻
         </span>
 
         Refresh Match List
+
       </button>
 
     </div>
@@ -159,10 +177,15 @@
 
           <tbody>
 
+            <!-- ================================= -->
             <!-- MATCH ROW -->
+            <!-- ================================= -->
 
             <tr
-              *ngFor="let match of matches; let i = index"
+              *ngFor="
+                let match of matches;
+                let i = index
+              "
             >
 
               <!-- ============================= -->
@@ -174,7 +197,7 @@
                 <span
                   class="badge text-bg-danger rounded-pill"
                 >
-                  {{ i + 1 }}
+                  {{ getSerialNumber(i) }}
                 </span>
 
               </td>
@@ -297,6 +320,7 @@
 
 
                   <button
+                    type="button"
                     class="btn btn-dark btn-sm"
                     (click)="
                       updateTeamNames(
@@ -363,6 +387,7 @@
 
 
                   <button
+                    type="button"
                     class="btn btn-dark btn-sm"
                     (click)="
                       updateTeamNames(
@@ -386,7 +411,12 @@
               <td>
 
                 <div
-                  class="d-flex flex-column gap-2 actions-container"
+                  class="
+                    d-flex
+                    flex-column
+                    gap-2
+                    actions-container
+                  "
                 >
 
                   <!-- ROW 1 -->
@@ -394,6 +424,7 @@
                   <div class="d-flex gap-2">
 
                     <button
+                      type="button"
                       class="
                         btn
                         btn-info
@@ -410,6 +441,7 @@
 
 
                     <button
+                      type="button"
                       class="
                         btn
                         btn-secondary
@@ -431,6 +463,7 @@
                   <div class="d-flex gap-2">
 
                     <button
+                      type="button"
                       class="
                         btn
                         btn-sm
@@ -456,6 +489,7 @@
 
 
                     <button
+                      type="button"
                       class="
                         btn
                         btn-success
@@ -508,6 +542,176 @@
           </tbody>
 
         </table>
+
+
+        <!-- ========================================= -->
+        <!-- PAGINATION -->
+        <!-- ========================================= -->
+
+        <div
+          *ngIf="totalItems > 0"
+          class="pagination-wrapper"
+        >
+
+          <!-- ===================================== -->
+          <!-- LEFT: PAGE SIZE -->
+          <!-- ===================================== -->
+
+          <div class="page-size-section">
+
+            <span class="text-muted">
+              Show
+            </span>
+
+
+      <select
+  id="pageSize"
+  class="form-select form-select-sm page-size-select"
+  [(ngModel)]="pageSize"
+  (change)="changePageSize()"
+>
+  <option [ngValue]="10">10</option>
+  <option [ngValue]="25">25</option>
+  <option [ngValue]="50">50</option>
+  <option [ngValue]="100">100</option>
+</select>
+
+
+            <span class="text-muted">
+              entries
+            </span>
+
+          </div>
+
+
+          <!-- ===================================== -->
+          <!-- CENTER: INFO -->
+          <!-- ===================================== -->
+
+          <div class="page-info">
+
+            Showing
+
+            <strong>
+              {{ getStartItem() }}
+            </strong>
+
+            -
+
+            <strong>
+              {{ getEndItem() }}
+            </strong>
+
+            of
+
+            <strong>
+              {{ totalItems }}
+            </strong>
+
+            matches
+
+          </div>
+
+
+          <!-- ===================================== -->
+          <!-- RIGHT: BUTTONS -->
+          <!-- ===================================== -->
+
+          <div class="pagination-buttons">
+
+            <!-- FIRST -->
+
+            <button
+              type="button"
+              class="
+                btn
+                btn-sm
+                btn-outline-secondary
+              "
+              [disabled]="
+                currentPage === 1
+              "
+              (click)="firstPage()"
+            >
+              First
+            </button>
+
+
+            <!-- PREVIOUS -->
+
+            <button
+              type="button"
+              class="
+                btn
+                btn-sm
+                btn-outline-secondary
+              "
+              [disabled]="
+                currentPage === 1
+              "
+              (click)="previousPage()"
+            >
+              Previous
+            </button>
+
+
+            <!-- PAGE NUMBERS -->
+
+            <button
+              type="button"
+              *ngFor="
+                let page of getPages()
+              "
+              class="btn btn-sm"
+              [ngClass]="
+                currentPage === page
+                  ? 'btn-primary'
+                  : 'btn-outline-primary'
+              "
+              (click)="changePage(page)"
+            >
+              {{ page }}
+            </button>
+
+
+            <!-- NEXT -->
+
+            <button
+              type="button"
+              class="
+                btn
+                btn-sm
+                btn-outline-secondary
+              "
+              [disabled]="
+                currentPage === totalPages
+              "
+              (click)="nextPage()"
+            >
+              Next
+            </button>
+
+
+            <!-- LAST -->
+
+            <button
+              type="button"
+              class="
+                btn
+                btn-sm
+                btn-outline-secondary
+              "
+              [disabled]="
+                currentPage === totalPages
+              "
+              (click)="lastPage()"
+            >
+              Last
+            </button>
+
+          </div>
+
+        </div>
 
       </div>
 
