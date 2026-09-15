@@ -1,0 +1,814 @@
+<div class="container-fluid bg-light min-vh-100 p-4">
+
+  <!-- HEADER -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+
+    <div>
+      <span class="badge text-bg-primary mb-2">
+        WEBSITE MANAGEMENT
+      </span>
+
+      <h2 class="fw-bold mb-1">
+        Domain Whitelisting
+      </h2>
+
+      <p class="text-muted mb-0">
+        Manage websites that are allowed to access AutoScore results.
+      </p>
+    </div>
+
+    <button
+      type="button"
+      class="btn btn-primary shadow-sm"
+      (click)="openAddPopup()"
+    >
+      <i class="bi bi-plus-lg me-1"></i>
+      Add Whitelisting
+    </button>
+
+  </div>
+
+
+  <!-- FILTER -->
+  <div class="card border-0 shadow-sm mb-4">
+
+    <div class="card-body">
+
+      <div class="d-flex gap-2 flex-wrap">
+
+        <button
+          type="button"
+          class="btn"
+          [ngClass]="
+            selectedFilter === 'all'
+              ? 'btn-primary'
+              : 'btn-outline-primary'
+          "
+          (click)="filterWebsites('all')"
+        >
+          <i class="bi bi-grid me-1"></i>
+          All
+        </button>
+
+
+        <button
+          type="button"
+          class="btn"
+          [ngClass]="
+            selectedFilter === 'premium'
+              ? 'btn-warning'
+              : 'btn-outline-warning'
+          "
+          (click)="filterWebsites('premium')"
+        >
+          <i class="bi bi-star-fill me-1"></i>
+          Premium
+        </button>
+
+
+        <button
+          type="button"
+          class="btn"
+          [ngClass]="
+            selectedFilter === 'showResult'
+              ? 'btn-info'
+              : 'btn-outline-info'
+          "
+          (click)="filterWebsites('showResult')"
+        >
+          <i class="bi bi-eye me-1"></i>
+          Show Result
+        </button>
+
+
+        <button
+          type="button"
+          class="btn"
+          [ngClass]="
+            selectedFilter === 'unregistered'
+              ? 'btn-danger'
+              : 'btn-outline-danger'
+          "
+          (click)="filterWebsites('unregistered')"
+        >
+          <i class="bi bi-person-x me-1"></i>
+          Unregistered
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- STATS -->
+  <div class="row g-3 mb-4">
+
+    <div class="col-12 col-md-4">
+
+      <div class="card border-0 shadow-sm h-100">
+
+        <div class="card-body d-flex align-items-center gap-3">
+
+          <div class="bg-primary-subtle rounded p-3 fs-4">
+            🌐
+          </div>
+
+          <div>
+
+            <div class="text-muted small">
+              Total Websites
+            </div>
+
+            <div class="fs-4 fw-bold">
+              {{ websites.length }}
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="col-12 col-md-4">
+
+      <div class="card border-0 shadow-sm h-100">
+
+        <div class="card-body d-flex align-items-center gap-3">
+
+          <div class="bg-warning-subtle rounded p-3 fs-4">
+            ⭐
+          </div>
+
+          <div>
+
+            <div class="text-muted small">
+              Premium
+            </div>
+
+            <div class="fs-4 fw-bold">
+              {{ getPremiumWebsiteCount() }}
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <div class="col-12 col-md-4">
+
+      <div class="card border-0 shadow-sm h-100">
+
+        <div class="card-body d-flex align-items-center gap-3">
+
+          <div class="bg-success-subtle rounded p-3 fs-4">
+            ✓
+          </div>
+
+          <div>
+
+            <div class="text-muted small">
+              Registered
+            </div>
+
+            <div class="fs-4 fw-bold">
+              {{ getActiveWebsiteCount() }}
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- TABLE -->
+  <div class="card border-0 shadow-sm">
+
+    <div class="card-header bg-white py-3">
+
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+        <div>
+
+          <h5 class="mb-1 fw-bold">
+            Whitelisted Websites
+          </h5>
+
+          <small class="text-muted">
+            Manage registered and unregistered websites
+          </small>
+
+        </div>
+
+
+        <div
+          class="input-group"
+          style="max-width: 280px;"
+        >
+
+          <span class="input-group-text bg-white">
+            <i class="bi bi-search"></i>
+          </span>
+
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search website..."
+            [(ngModel)]="searchText"
+            (input)="searchWebsites()"
+          />
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- LOADING -->
+    <div
+      *ngIf="isLoading"
+      class="text-center py-5"
+    >
+
+      <div
+        class="spinner-border text-primary"
+        role="status"
+      ></div>
+
+      <div class="text-muted mt-2">
+        Loading websites...
+      </div>
+
+    </div>
+
+
+    <!-- DATA -->
+    <div
+      *ngIf="!isLoading"
+      class="table-responsive"
+    >
+
+      <table class="table table-hover align-middle mb-0">
+
+        <thead class="table-light">
+
+          <tr>
+
+            <th>#</th>
+
+            <th>Website</th>
+
+            <th>Domain URL</th>
+
+            <th>Endpoint</th>
+
+            <th>Type</th>
+
+            <th class="text-end">
+              Action
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <tr
+            *ngFor="
+              let website of filteredWebsites;
+              let i = index
+            "
+          >
+
+            <!-- NUMBER -->
+            <td>
+
+              <span class="badge rounded-pill text-bg-secondary">
+                {{ i + 1 }}
+              </span>
+
+            </td>
+
+
+            <!-- WEBSITE -->
+            <td>
+
+              <div class="d-flex align-items-center gap-2">
+
+                <div
+                  class="rounded bg-primary text-white d-flex align-items-center justify-content-center"
+                  style="width:38px;height:38px;"
+                >
+                  {{
+                    website.websiteName
+                      ?.charAt(0)
+                      ?.toUpperCase()
+                  }}
+                </div>
+
+                <div>
+
+                  <div class="fw-semibold">
+                    {{ website.websiteName }}
+                  </div>
+
+                  <small class="text-muted">
+                    Website
+                  </small>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <!-- DOMAIN URL -->
+            <td>
+
+              <span class="text-primary">
+                {{ website.domainUrl }}
+              </span>
+
+            </td>
+
+
+            <!-- ENDPOINT -->
+            <td>
+
+              <code>
+                {{ getEndpoint(website) }}
+              </code>
+
+            </td>
+
+
+            <!-- TYPE -->
+            <td>
+
+              <span
+                *ngIf="hasPremium(website)"
+                class="badge text-bg-warning me-1"
+              >
+                <i class="bi bi-star-fill me-1"></i>
+                Premium
+              </span>
+
+
+              <span
+                *ngIf="hasShowResult(website)"
+                class="badge text-bg-info"
+              >
+                <i class="bi bi-eye me-1"></i>
+                Show Result
+              </span>
+
+            </td>
+
+
+            <!-- ACTION -->
+            <td>
+
+              <div class="d-flex justify-content-end gap-2">
+
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="editWebsite(website)"
+                >
+                  <i class="bi bi-pencil me-1"></i>
+                  Edit
+                </button>
+
+
+                <button
+                  *ngIf="isRegistered(website)"
+                  type="button"
+                  class="btn btn-sm btn-outline-danger"
+                  (click)="unregisterWebsite(website)"
+                >
+                  <i class="bi bi-person-x me-1"></i>
+                  Unregister
+                </button>
+
+
+                <button
+                  *ngIf="!isRegistered(website)"
+                  type="button"
+                  class="btn btn-sm btn-outline-success"
+                  (click)="registerWebsite(website)"
+                >
+                  <i class="bi bi-person-check me-1"></i>
+                  Register
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- EMPTY -->
+          <tr *ngIf="filteredWebsites.length === 0">
+
+            <td
+              colspan="6"
+              class="text-center py-5"
+            >
+
+              <div class="fs-1 mb-2">
+                📋
+              </div>
+
+              <div class="fw-semibold text-muted">
+                No whitelisted websites found.
+              </div>
+
+              <small class="text-muted">
+                Try another filter or search term.
+              </small>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- MODAL -->
+<div
+  *ngIf="showPopup"
+  class="modal fade show d-block"
+  tabindex="-1"
+  style="background: rgba(0,0,0,0.5);"
+>
+
+  <div
+    class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"
+  >
+
+    <div class="modal-content border-0 shadow-lg">
+
+      <!-- MODAL HEADER -->
+      <div class="modal-header">
+
+        <div>
+
+          <h5 class="modal-title fw-bold">
+
+            {{
+              isEditMode
+                ? 'Edit Whitelisting'
+                : 'Add Whitelisting'
+            }}
+
+          </h5>
+
+          <small class="text-muted">
+
+            {{
+              isEditMode
+                ? 'Update website details'
+                : 'Register a new website'
+            }}
+
+          </small>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="btn-close"
+          (click)="closePopup()"
+        ></button>
+
+      </div>
+
+
+      <!-- MODAL BODY -->
+      <div class="modal-body">
+
+        <!-- WEBSITE -->
+        <div class="mb-3">
+
+          <label class="form-label fw-semibold">
+            Website Name
+            <span class="text-danger">*</span>
+          </label>
+
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Enter website name"
+            [(ngModel)]="websiteName"
+          />
+
+        </div>
+
+
+        <!-- DOMAIN -->
+        <div class="mb-4">
+
+          <label class="form-label fw-semibold">
+            Domain URL
+            <span class="text-danger">*</span>
+          </label>
+
+          <input
+            type="text"
+            class="form-control"
+            placeholder="https://example.com"
+            [(ngModel)]="domainUrl"
+          />
+
+        </div>
+
+
+        <!-- OPTIONS -->
+        <div class="row g-3 mb-4">
+
+          <!-- PREMIUM -->
+          <div class="col-md-6">
+
+            <div class="card h-100 border">
+
+              <div class="card-body">
+
+                <div class="form-check form-switch">
+
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="premiumSwitch"
+                    [(ngModel)]="isPremium"
+                  />
+
+                  <label
+                    class="form-check-label fw-semibold"
+                    for="premiumSwitch"
+                  >
+                    <i class="bi bi-star-fill text-warning me-1"></i>
+                    Premium
+                  </label>
+
+                </div>
+
+                <small class="text-muted">
+                  Enable premium results
+                </small>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- SHOW RESULT -->
+          <div class="col-md-6">
+
+            <div class="card h-100 border">
+
+              <div class="card-body">
+
+                <div class="form-check form-switch">
+
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="showResultSwitch"
+                    [(ngModel)]="isShowResult"
+                  />
+
+                  <label
+                    class="form-check-label fw-semibold"
+                    for="showResultSwitch"
+                  >
+                    <i class="bi bi-eye me-1"></i>
+                    Show Result
+                  </label>
+
+                </div>
+
+                <small class="text-muted">
+                  Allow result display
+                </small>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- AUTO RESULT -->
+          <div class="col-12">
+
+            <div class="card border">
+
+              <div class="card-body">
+
+                <div class="form-check form-switch">
+
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="autoResultSwitch"
+                    [(ngModel)]="isAutoResult"
+                  />
+
+                  <label
+                    class="form-check-label fw-semibold"
+                    for="autoResultSwitch"
+                  >
+                    <i class="bi bi-lightning-charge me-1"></i>
+                    Auto Result
+                  </label>
+
+                </div>
+
+                <small class="text-muted">
+                  Enable automatic result processing
+                </small>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- PREMIUM CONFIG -->
+        <div
+          *ngIf="isPremium"
+          class="card border-warning mb-3"
+        >
+
+          <div class="card-header bg-warning-subtle fw-semibold">
+
+            <i class="bi bi-star-fill text-warning me-1"></i>
+            Premium Configuration
+
+          </div>
+
+          <div class="card-body">
+
+            <div class="mb-3">
+
+              <label class="form-label">
+                Premium End Point
+              </label>
+
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="premiumEndpoint"
+              />
+
+            </div>
+
+
+            <div>
+
+              <label class="form-label">
+                RollBack End Point
+              </label>
+
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="premiumRollbackEndpoint"
+              />
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- SHOW RESULT CONFIG -->
+        <div
+          *ngIf="isShowResult"
+          class="card border-info mb-3"
+        >
+
+          <div class="card-header bg-info-subtle fw-semibold">
+
+            <i class="bi bi-eye me-1"></i>
+            Show Result Configuration
+
+          </div>
+
+          <div class="card-body">
+
+            <div class="mb-3">
+
+              <label class="form-label">
+                Show Result End Point
+              </label>
+
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="showResultEndpoint"
+              />
+
+            </div>
+
+
+            <div>
+
+              <label class="form-label">
+                RollBack End Point
+              </label>
+
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="showResultRollbackEndpoint"
+              />
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- MODAL FOOTER -->
+      <div class="modal-footer">
+
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          (click)="closePopup()"
+        >
+          Cancel
+        </button>
+
+
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="
+            !websiteName.trim() ||
+            !domainUrl.trim()
+          "
+          (click)="addWebsite()"
+        >
+
+          <i
+            class="bi"
+            [ngClass]="
+              isEditMode
+                ? 'bi-check-lg'
+                : 'bi-plus-lg'
+            "
+          ></i>
+
+          {{
+            isEditMode
+              ? 'Update Website'
+              : 'Add Website'
+          }}
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

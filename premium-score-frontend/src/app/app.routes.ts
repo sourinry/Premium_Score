@@ -14,6 +14,13 @@ export const routes: Routes = [
       import('./features/match-management/old-matches-list/old-matches-list')
         .then(m => m.OldMatchesList)
   },
+  
+  {
+    path: 'websites',
+    loadComponent: () =>
+      import('./features/website/domain-whitelisting/domain-whitelisting')
+        .then(m => m.DomainWhitelisting)
+  },
 
   {
     path: '',

@@ -1,453 +1,345 @@
 <div class="matches-page">
-
-  <!-- ========================================= -->
+  <!-- ================================================= -->
   <!-- FILTER CARD -->
-  <!-- ========================================= -->
+  <!-- ================================================= -->
 
   <div class="filter-card">
-
     <!-- SPORT TABS -->
 
     <div class="sport-tabs">
-
       <button
         type="button"
-        class="sport-btn cricket"
-        [class.active]="selectedSport === 'Cricket'"
-        (click)="selectSport('Cricket')">
-
+        class="btn sport-btn cricket"
+        [ngClass]="selectedSport === 'Cricket' ? 'active' : ''"
+        (click)="selectSport('Cricket')"
+      >
         <span class="sport-icon">🏏</span>
 
         Cricket
-
       </button>
-
 
       <button
         type="button"
-        class="sport-btn soccer"
-        [class.active]="selectedSport === 'Soccer'"
-        (click)="selectSport('Soccer')">
-
+        class="btn sport-btn soccer"
+        [ngClass]="selectedSport === 'Soccer' ? 'active' : ''"
+        (click)="selectSport('Soccer')"
+      >
         <span class="sport-icon">⚽</span>
 
         Soccer
-
       </button>
-
 
       <button
         type="button"
-        class="sport-btn tennis"
-        [class.active]="selectedSport === 'Tennis'"
-        (click)="selectSport('Tennis')">
-
+        class="btn sport-btn tennis"
+        [ngClass]="selectedSport === 'Tennis' ? 'active' : ''"
+        (click)="selectSport('Tennis')"
+      >
         <span class="sport-icon">🎾</span>
 
         Tennis
-
       </button>
 
-    </div>
+      <!-- REFRESH -->
 
+      <button
+        type="button"
+        class="btn btn-dark refresh-btn"
+        [disabled]="isLoading"
+        (click)="refreshMatches()"
+      >
+        <span class="me-1">↻</span>
+
+        Refresh
+      </button>
+    </div>
 
     <!-- DATE FILTERS -->
 
     <div class="date-filters">
-
-      <div class="date-field">
-
-        <label for="fromDate">
-          From
-        </label>
-
-        <div class="input-wrapper">
-
-          <input
-            id="fromDate"
-            type="date"
-            [(ngModel)]="fromDate">
-
-        </div>
-
-      </div>
-
-
-      <div class="date-field">
-
-        <label for="toDate">
-          To
-        </label>
-
-        <div class="input-wrapper">
-
-          <input
-            id="toDate"
-            type="date"
-            [(ngModel)]="toDate">
-
-        </div>
-
-      </div>
-
-
-      <button
-        type="button"
-        class="search-btn"
-        (click)="search()">
-
-        <span>⌕</span>
+      <button type="button" class="btn btn-primary search-btn" (click)="loadMatches()">
+        <i class="bi bi-search me-1"></i>
 
         Search
-
       </button>
-
     </div>
-
   </div>
 
-
-  <!-- ========================================= -->
+  <!-- ================================================= -->
   <!-- TABLE CARD -->
-  <!-- ========================================= -->
+  <!-- ================================================= -->
 
   <div class="table-card">
-
-
     <!-- TABLE HEADER -->
 
     <div class="table-header">
-
       <div class="table-title">
+        <h2>New Matches</h2>
 
-        <h2>
-          New Matches
-        </h2>
-
-        <span class="match-count">
-
-          {{ totalItems }} Matches
-
-        </span>
-
+        <span class="match-count"> {{ totalItems }} Matches </span>
       </div>
 
-
       <div class="live-indicator">
-
         <span></span>
 
         Live
-
       </div>
-
     </div>
 
-
-    <!-- ========================================= -->
+    <!-- ================================================= -->
     <!-- LOADING -->
-    <!-- ========================================= -->
+    <!-- ================================================= -->
 
-    <div
-      *ngIf="isLoading"
-      class="loading-container">
-
-      <div
-        class="spinner-border text-primary"
-        role="status">
-
-        <span class="visually-hidden">
-          Loading...
-        </span>
-
+    <div *ngIf="isLoading" class="loading-container">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden"> Loading... </span>
       </div>
 
-      <div class="loading-text">
-        Loading matches...
-      </div>
-
+      <div class="loading-text">Loading matches...</div>
     </div>
 
-
-    <!-- ========================================= -->
+    <!-- ================================================= -->
     <!-- TABLE -->
-    <!-- ========================================= -->
+    <!-- ================================================= -->
 
-    <div
-      *ngIf="!isLoading"
-      class="table-container">
-
-      <table>
-
+    <div *ngIf="!isLoading" class="table-container">
+      <table class="table table-hover align-middle mb-0">
         <thead>
-
           <tr>
+            <th class="number-col text-center">#</th>
 
-            <th class="number-col">
-              #
-            </th>
+            <th>Mkt ID</th>
 
-            <th>
-              Mkt ID
-            </th>
+            <th class="event-col">Event</th>
 
-            <th class="event-col">
-              Event Name
-            </th>
+            <th>Score ID</th>
 
-            <th>
-              Score ID
-            </th>
+            <th class="team-column">Timeline Team Names</th>
 
-            <th>
-              Source
-            </th>
+            <th class="team-column">Update Team Names</th>
 
-            <th>
-              Open Date
-            </th>
-
-            <th class="action-col">
-              Action
-            </th>
-
+            <th class="action-col">Actions</th>
           </tr>
-
         </thead>
 
-
         <tbody>
+          <!-- ================================================= -->
+          <!-- MATCH ROW -->
+          <!-- ================================================= -->
 
-          <!-- ===================================== -->
-          <!-- MATCH DATA -->
-          <!-- ===================================== -->
+          <tr *ngFor="let match of matches; let i = index; trackBy: trackByEventId">
+            <!-- SERIAL -->
 
-          <tr
-            *ngFor="
-              let match of matches;
-              let i = index;
-              trackBy: trackByEventId
-            ">
-
-
-            <!-- SERIAL NUMBER -->
-
-            <td class="number">
-
-              {{ getSerialNumber(i) }}
-
+            <td class="text-center">
+              <span class="serial-badge">
+                {{ getSerialNumber(i) }}
+              </span>
             </td>
-
 
             <!-- MARKET ID -->
-
             <td>
-
               <div class="market-id">
-
-                <span
-                  *ngFor="
-                    let id of getMarketIds(match)
-                  ">
-
-                  {{ id }}
-
+                <!-- Market ID -->
+                <span class="market-id-value">
+                  {{ match?.marketId || '—' }}
                 </span>
 
+                <!-- Event ID -->
+                <span class="event-id-value">
+                  {{ match?.eventId || '—' }}
+                </span>
               </div>
-
             </td>
 
-
-            <!-- EVENT NAME -->
+            <!-- EVENT -->
 
             <td class="event-name">
-
               <div class="event-title">
                 {{ match.eventName }}
               </div>
 
-              <div
-                class="competition-name"
-                *ngIf="match.competitionName">
-
-                {{ match.competitionName }}
-
+              <div class="competition-name" *ngIf="getCompetition(match)">
+                {{ getCompetition(match) }}
               </div>
 
+              <div class="open-date">
+                {{ getMatchDate(match) }}
+              </div>
             </td>
-
 
             <!-- SCORE ID -->
 
             <td>
-
-              <span
-                class="score-id"
-                [class.not-assigned]="
-                  !match.scoreId ||
-                  match.scoreId === '0'
-                ">
-
-                {{
-                  !match.scoreId ||
-                  match.scoreId === '0'
-                    ? 'Not Assigned'
-                    : match.scoreId
-                }}
-
+              <span class="score-id" [class.not-assigned]="!match.scoreId || match.scoreId === '0'">
+                {{ !match.scoreId || match.scoreId === '0' ? 'Not Assigned' : match.scoreId }}
               </span>
-
             </td>
 
-
-            <!-- SOURCE -->
+            <!-- ================================================= -->
+            <!-- TIMELINE TEAM NAMES -->
+            <!-- ================================================= -->
 
             <td>
+              <div class="team-section">
+                <div class="team-heading timeline-heading">Timeline</div>
 
-              <span class="source-badge">
+                <label class="form-label"> Home </label>
 
-                {{
-                  !match.scoreId ||
-                  match.scoreId === '0'
-                    ? '—'
-                    : 'API'
-                }}
+                <input
+                  type="text"
+                  class="form-control form-control-sm mb-2"
+                  [value]="match.homeTeam || 'null'"
+                  readonly
+                />
 
-              </span>
+                <label class="form-label"> Away </label>
 
-            </td>
-
-
-            <!-- OPEN DATE -->
-
-            <td class="open-date">
-
-              {{ getMatchDate(match.openDate) }}
-
-            </td>
-
-
-            <!-- ACTION -->
-
-            <td>
-
-              <div class="actions">
+                <input
+                  type="text"
+                  class="form-control form-control-sm mb-2"
+                  [value]="match.awayTeam || 'null'"
+                  readonly
+                />
 
                 <button
                   type="button"
-                  class="action-btn score"
-                  (click)="checkScore(match)">
-
-                  Check Score
-
+                  class="btn btn-dark btn-sm w-100"
+                  (click)="updateTeamNames(match, 'timeline')"
+                >
+                  Update Team Names
                 </button>
-
-
-                <button
-                  type="button"
-                  class="action-btn our-fancy"
-                  (click)="ourFancy(match)">
-
-                  Our Fancy
-
-                </button>
-
-
-                <button
-                  type="button"
-                  class="action-btn all-fancy"
-                  (click)="allFancy(match)">
-
-                  All Fancy
-
-                </button>
-
               </div>
-
             </td>
 
+            <!-- ================================================= -->
+            <!-- UPDATE TEAM NAMES -->
+            <!-- ================================================= -->
+
+            <td>
+              <div class="team-section">
+                <div class="team-heading">Update</div>
+
+                <label class="form-label"> Home </label>
+
+                <input
+                  type="text"
+                  class="form-control form-control-sm mb-2"
+                  [(ngModel)]="match.homeTeam"
+                />
+
+                <label class="form-label"> Away </label>
+
+                <input
+                  type="text"
+                  class="form-control form-control-sm mb-2"
+                  [(ngModel)]="match.awayTeam"
+                />
+
+                <button
+                  type="button"
+                  class="btn btn-dark btn-sm w-100"
+                  (click)="updateTeamNames(match, 'update')"
+                >
+                  Update Team Names
+                </button>
+              </div>
+            </td>
+
+            <!-- ================================================= -->
+            <!-- ACTIONS -->
+            <!-- ================================================= -->
+
+            <td>
+              <div class="actions">
+                <!-- CHECK SCORE -->
+
+                <button
+                  type="button"
+                  class="btn btn-info btn-sm action-btn score"
+                  (click)="checkScore(match)"
+                >
+                  Check Score
+                </button>
+
+                <!-- OUR FANCY -->
+
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm action-btn our-fancy"
+                  (click)="ourFancy(match)"
+                >
+                  Our Fancy
+                </button>
+
+                <!-- RESULT -->
+
+                <button
+                  type="button"
+                  class="btn btn-sm action-btn"
+                  [ngClass]="match.resultBlocked ? 'btn-danger' : 'btn-primary'"
+                  (click)="toggleResult(match)"
+                >
+                  {{ match.resultBlocked ? 'Unblock Result' : 'Block Result' }}
+                </button>
+
+                <!-- ALL FANCY -->
+
+                <button
+                  type="button"
+                  class="btn btn-success btn-sm action-btn all-fancy"
+                  (click)="allFancy(match)"
+                >
+                  All Fancy
+                </button>
+              </div>
+            </td>
           </tr>
 
-
-          <!-- ===================================== -->
+          <!-- ================================================= -->
           <!-- NO DATA -->
-          <!-- ===================================== -->
+          <!-- ================================================= -->
 
-          <tr
-            *ngIf="matches.length === 0">
+          <tr *ngIf="matches.length === 0">
+            <td colspan="7" class="no-data">
+              <div class="no-data-icon">📋</div>
 
-            <td
-              colspan="7"
-              class="no-data">
-
-              <div class="no-data-icon">
-                📋
-              </div>
-
-              <div class="no-data-title">
-                No matches found
-              </div>
+              <div class="no-data-title">No matches found</div>
 
               <div class="no-data-text">
-                There are no matches available for
-                {{ selectedSport }}.
+                There are no matches available for {{ selectedSport }}.
               </div>
-
             </td>
-
           </tr>
-
         </tbody>
-
       </table>
-
     </div>
 
-
-    <!-- ========================================= -->
+    <!-- ================================================= -->
     <!-- PAGINATION -->
-    <!-- ========================================= -->
+    <!-- ================================================= -->
 
-    <div
-      *ngIf="!isLoading && totalItems > 0"
-      class="pagination-wrapper">
-
-
+    <div *ngIf="!isLoading && totalItems > 0" class="pagination-wrapper">
       <!-- PAGE SIZE -->
 
       <div class="page-size-section">
-
-        <span>
-          Show
-        </span>
+        <span> Show </span>
 
         <select
           class="form-select form-select-sm page-size-select"
           [(ngModel)]="pageSize"
-          (change)="changePageSize()">
-
-          <option
-            *ngFor="let size of pageSizeOptions"
-            [ngValue]="size">
-
+          (change)="changePageSize()"
+        >
+          <option *ngFor="let size of pageSizeOptions" [ngValue]="size">
             {{ size }}
-
           </option>
-
         </select>
 
-        <span>
-          entries
-        </span>
-
+        <span> entries </span>
       </div>
 
-
-      <!-- PAGE INFORMATION -->
+      <!-- PAGE INFO -->
 
       <div class="page-info">
-
         Showing
 
         <strong>
@@ -467,29 +359,18 @@
         </strong>
 
         matches
-
       </div>
-
 
       <!-- PAGINATION -->
 
       <div class="pagination-buttons">
-
-
         <!-- FIRST -->
 
-        <button
-          type="button"
-          class="page-btn"
-          [disabled]="currentPage === 1"
-          (click)="firstPage()">
-
+        <button type="button" class="page-btn" [disabled]="currentPage === 1" (click)="firstPage()">
           <i class="bi bi-chevron-double-left"></i>
 
           First
-
         </button>
-
 
         <!-- PREVIOUS -->
 
@@ -497,14 +378,12 @@
           type="button"
           class="page-btn"
           [disabled]="currentPage === 1"
-          (click)="previousPage()">
-
+          (click)="previousPage()"
+        >
           <i class="bi bi-chevron-left"></i>
 
           Previous
-
         </button>
-
 
         <!-- PAGE NUMBERS -->
 
@@ -513,50 +392,37 @@
           class="page-btn page-number"
           *ngFor="let page of getPages()"
           [class.active]="currentPage === page"
-          (click)="changePage(page)">
-
+          (click)="changePage(page)"
+        >
           {{ page }}
-
         </button>
-
 
         <!-- NEXT -->
 
         <button
           type="button"
           class="page-btn"
-          [disabled]="
-            currentPage === totalPages
-          "
-          (click)="nextPage()">
-
+          [disabled]="currentPage === totalPages"
+          (click)="nextPage()"
+        >
           Next
 
           <i class="bi bi-chevron-right"></i>
-
         </button>
-
 
         <!-- LAST -->
 
         <button
           type="button"
           class="page-btn"
-          [disabled]="
-            currentPage === totalPages
-          "
-          (click)="lastPage()">
-
+          [disabled]="currentPage === totalPages"
+          (click)="lastPage()"
+        >
           Last
 
           <i class="bi bi-chevron-double-right"></i>
-
         </button>
-
       </div>
-
     </div>
-
   </div>
-
 </div>

@@ -1,44 +1,35 @@
-/* ================================================
+
+/* =====================================================
    PAGE
-================================================ */
+===================================================== */
 
 .matches-page {
   min-height: 100vh;
-
   padding: 28px;
-
   background: #f5f7fb;
-
   font-family:
     Inter,
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-
   color: #1f2937;
 }
 
 
-/* ================================================
+/* =====================================================
    FILTER CARD
-================================================ */
+===================================================== */
 
 .filter-card {
   background: #ffffff;
-
   border: 1px solid #e5e7eb;
-
   border-radius: 12px;
-
   padding: 18px 20px;
-
   margin-bottom: 20px;
 
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
 
   gap: 20px;
@@ -47,26 +38,25 @@
     0 2px 8px rgba(15, 23, 42, 0.04);
 
   position: sticky;
-
   top: 0;
-
   z-index: 1000;
 }
 
 
-/* ================================================
+/* =====================================================
    SPORT TABS
-================================================ */
+===================================================== */
 
 .sport-tabs {
   display: flex;
-
+  align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
+
 
 .sport-btn {
   border: 1px solid #e5e7eb;
-
   background: #ffffff;
 
   padding: 9px 18px;
@@ -74,157 +64,87 @@
   border-radius: 8px;
 
   font-size: 14px;
-
   font-weight: 600;
 
   cursor: pointer;
 
-  transition: all 0.2s ease;
-
   display: flex;
-
   align-items: center;
-
   gap: 7px;
 
   color: #4b5563;
+
+  transition: all 0.2s ease;
 }
+
 
 .sport-btn:hover {
   background: #f9fafb;
-
   border-color: #d1d5db;
 }
 
-.sport-btn.active {
-  color: #ffffff;
-
-  border-color: transparent;
-}
 
 .sport-btn.cricket.active {
   background: #16845b;
+  border-color: #16845b;
+  color: #ffffff;
 }
+
 
 .sport-btn.soccer.active {
   background: #64748b;
+  border-color: #64748b;
+  color: #ffffff;
 }
+
 
 .sport-btn.tennis.active {
   background: #eab308;
-
+  border-color: #eab308;
   color: #111827;
 }
+
 
 .sport-icon {
   font-size: 15px;
 }
 
 
-/* ================================================
-   DATE FILTERS
-================================================ */
+/* =====================================================
+   REFRESH
+===================================================== */
+
+.refresh-btn {
+  height: 38px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 16px;
+}
+
+
+/* =====================================================
+   SEARCH
+===================================================== */
 
 .date-filters {
   display: flex;
-
-  align-items: flex-end;
-
-  gap: 12px;
+  align-items: center;
 }
 
-.date-field {
-  display: flex;
-
-  flex-direction: column;
-
-  gap: 5px;
-}
-
-.date-field label {
-  font-size: 12px;
-
-  font-weight: 600;
-
-  color: #6b7280;
-}
-
-.input-wrapper {
-  position: relative;
-}
-
-.input-wrapper input {
-  height: 38px;
-
-  width: 150px;
-
-  padding: 0 10px;
-
-  border: 1px solid #d1d5db;
-
-  border-radius: 7px;
-
-  background: #ffffff;
-
-  font-size: 13px;
-
-  color: #374151;
-
-  outline: none;
-
-  transition: 0.2s;
-}
-
-.input-wrapper input:focus {
-  border-color: #2563eb;
-
-  box-shadow:
-    0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-
-/* ================================================
-   SEARCH BUTTON
-================================================ */
 
 .search-btn {
   height: 38px;
-
-  border: none;
-
   border-radius: 7px;
-
   padding: 0 18px;
-
-  background: #2563eb;
-
-  color: #ffffff;
-
   font-size: 13px;
-
   font-weight: 600;
-
-  cursor: pointer;
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 7px;
-
-  transition: 0.2s;
-}
-
-.search-btn:hover {
-  background: #1d4ed8;
-
-  transform: translateY(-1px);
 }
 
 
-/* ================================================
+/* =====================================================
    TABLE CARD
-================================================ */
+===================================================== */
 
 .table-card {
   background: #ffffff;
@@ -240,9 +160,9 @@
 }
 
 
-/* ================================================
+/* =====================================================
    TABLE HEADER
-================================================ */
+===================================================== */
 
 .table-header {
   min-height: 64px;
@@ -250,31 +170,29 @@
   padding: 0 20px;
 
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
 
   border-bottom: 1px solid #e5e7eb;
 }
 
+
 .table-title {
   display: flex;
-
   align-items: center;
-
   gap: 10px;
 }
+
 
 .table-title h2 {
   margin: 0;
 
   font-size: 17px;
-
   font-weight: 700;
 
   color: #111827;
 }
+
 
 .match-count {
   padding: 4px 9px;
@@ -282,36 +200,31 @@
   border-radius: 20px;
 
   background: #eff6ff;
-
   color: #2563eb;
 
   font-size: 11px;
-
   font-weight: 600;
 }
 
 
-/* ================================================
-   LIVE INDICATOR
-================================================ */
+/* =====================================================
+   LIVE
+===================================================== */
 
 .live-indicator {
   display: flex;
-
   align-items: center;
-
   gap: 7px;
 
   font-size: 12px;
-
   font-weight: 600;
 
   color: #16a34a;
 }
 
+
 .live-indicator span {
   width: 7px;
-
   height: 7px;
 
   border-radius: 50%;
@@ -323,27 +236,26 @@
 }
 
 
-/* ================================================
+/* =====================================================
    LOADING
-================================================ */
+===================================================== */
 
 .loading-container {
   min-height: 350px;
 
   display: flex;
-
   flex-direction: column;
 
   align-items: center;
-
   justify-content: center;
 }
 
+
 .loading-container .spinner-border {
   width: 2rem;
-
   height: 2rem;
 }
+
 
 .loading-text {
   margin-top: 12px;
@@ -354,40 +266,38 @@
 }
 
 
-/* ================================================
-   TABLE
-================================================ */
+/* =====================================================
+   TABLE RESPONSIVE
+===================================================== */
 
 .table-container {
   width: 100%;
-
   overflow-x: auto;
 }
 
-table {
+
+.table-container table {
   width: 100%;
-
+  min-width: 1500px;
   border-collapse: collapse;
-
-  min-width: 1100px;
 }
 
 
-/* ================================================
+/* =====================================================
    TABLE HEADER
-================================================ */
+===================================================== */
 
-thead {
+.table-container thead {
   background: #f8fafc;
 }
 
-th {
+
+.table-container th {
   padding: 13px 14px;
 
   text-align: left;
 
   font-size: 11px;
-
   font-weight: 700;
 
   color: #64748b;
@@ -402,11 +312,11 @@ th {
 }
 
 
-/* ================================================
+/* =====================================================
    TABLE BODY
-================================================ */
+===================================================== */
 
-td {
+.table-container td {
   padding: 14px;
 
   font-size: 13px;
@@ -416,79 +326,104 @@ td {
   vertical-align: middle;
 }
 
-tbody tr {
-  transition:
-    background 0.15s ease;
+
+.table-container tbody tr {
+  transition: background 0.15s ease;
 }
 
-tbody tr:hover {
+
+.table-container tbody tr:hover {
   background: #f8fafc;
 }
 
-tbody tr:last-child td {
+
+.table-container tbody tr:last-child td {
   border-bottom: none;
 }
 
 
-/* ================================================
+/* =====================================================
    COLUMNS
-================================================ */
+===================================================== */
 
 .number-col {
-  width: 50px;
+  width: 55px;
 }
 
-.number {
-  color: #94a3b8;
-
-  font-weight: 600;
-
-  width: 50px;
-}
 
 .event-col {
-  width: 30%;
+  width: 270px;
 }
+
+
+.team-column {
+  width: 230px;
+}
+
 
 .action-col {
-  width: 280px;
+  width: 300px;
 }
 
 
-/* ================================================
-   MARKET ID
-================================================ */
+/* =====================================================
+   SERIAL NUMBER
+===================================================== */
 
-.market-id {
-  display: flex;
+.serial-badge {
+  display: inline-flex;
 
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
-  gap: 4px;
-}
+  width: 28px;
+  height: 28px;
 
-.market-id span {
-  color: #2563eb;
+  border-radius: 50%;
 
-  font-weight: 600;
+  background: #f1f5f9;
+
+  color: #64748b;
 
   font-size: 12px;
 
+  font-weight: 700;
+}
+
+
+/* =====================================================
+   MARKET ID
+===================================================== */
+
+.market-id {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.market-id-value {
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 12px;
   white-space: nowrap;
 }
 
-.market-id span:last-child {
+.event-id-value {
   color: #16a34a;
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 
-/* ================================================
-   EVENT NAME
-================================================ */
+/* =====================================================
+   EVENT
+===================================================== */
 
 .event-name {
   min-width: 250px;
 }
+
 
 .event-title {
   font-weight: 600;
@@ -497,6 +432,7 @@ tbody tr:last-child td {
 
   line-height: 1.4;
 }
+
 
 .competition-name {
   margin-top: 4px;
@@ -507,9 +443,9 @@ tbody tr:last-child td {
 }
 
 
-/* ================================================
+/* =====================================================
    SCORE ID
-================================================ */
+===================================================== */
 
 .score-id {
   display: inline-flex;
@@ -531,6 +467,7 @@ tbody tr:last-child td {
   white-space: nowrap;
 }
 
+
 .score-id.not-assigned {
   background: #fef3c7;
 
@@ -538,56 +475,88 @@ tbody tr:last-child td {
 }
 
 
-/* ================================================
-   SOURCE
-================================================ */
-
-.source-badge {
-  color: #64748b;
-
-  font-size: 12px;
-}
-
-
-/* ================================================
+/* =====================================================
    OPEN DATE
-================================================ */
+===================================================== */
 
 .open-date {
+  margin-top: 5px;
+
   color: #15803d;
 
-  font-size: 12px;
+  font-size: 11px;
 
   white-space: nowrap;
 }
 
 
-/* ================================================
-   ACTIONS
-================================================ */
+/* =====================================================
+   TEAM SECTION
+===================================================== */
 
-.actions {
-  display: flex;
-
-  align-items: center;
-
-  gap: 7px;
-
-  white-space: nowrap;
+.team-section {
+  min-width: 200px;
 }
 
-.action-btn {
-  border: none;
 
-  padding: 8px 11px;
+.team-heading {
+  margin-bottom: 10px;
 
-  border-radius: 7px;
+  color: #334155;
+
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+
+.timeline-heading {
+  color: #16845b;
+}
+
+
+.team-section .form-label {
+  margin-bottom: 4px;
+
+  color: #64748b;
 
   font-size: 11px;
 
   font-weight: 600;
+}
 
-  cursor: pointer;
+
+.team-section .form-control {
+  border-radius: 6px;
+
+  font-size: 12px;
+
+  min-width: 190px;
+}
+
+
+/* =====================================================
+   ACTIONS
+===================================================== */
+
+.actions {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(120px, 1fr));
+
+  gap: 7px;
+
+  min-width: 270px;
+}
+
+
+.action-btn {
+  border-radius: 7px !important;
+
+  font-size: 11px !important;
+
+  font-weight: 600 !important;
 
   white-space: nowrap;
 
@@ -596,6 +565,7 @@ tbody tr:last-child td {
     box-shadow 0.15s ease;
 }
 
+
 .action-btn:hover {
   transform: translateY(-1px);
 
@@ -603,40 +573,37 @@ tbody tr:last-child td {
     0 3px 7px rgba(15, 23, 42, 0.12);
 }
 
+
 .action-btn.score {
   background: #06b6d4;
+
+  border-color: #06b6d4;
 
   color: #ffffff;
 }
 
-.action-btn.score:hover {
-  background: #0891b2;
-}
 
 .action-btn.our-fancy {
   background: #64748b;
 
+  border-color: #64748b;
+
   color: #ffffff;
 }
 
-.action-btn.our-fancy:hover {
-  background: #475569;
-}
 
 .action-btn.all-fancy {
   background: #16845b;
 
+  border-color: #16845b;
+
   color: #ffffff;
 }
 
-.action-btn.all-fancy:hover {
-  background: #047857;
-}
 
-
-/* ================================================
+/* =====================================================
    NO DATA
-================================================ */
+===================================================== */
 
 .no-data {
   text-align: center;
@@ -646,11 +613,13 @@ tbody tr:last-child td {
   color: #94a3b8;
 }
 
+
 .no-data-icon {
   font-size: 32px;
 
   margin-bottom: 10px;
 }
+
 
 .no-data-title {
   font-size: 15px;
@@ -659,6 +628,7 @@ tbody tr:last-child td {
 
   color: #475569;
 }
+
 
 .no-data-text {
   margin-top: 5px;
@@ -669,9 +639,9 @@ tbody tr:last-child td {
 }
 
 
-/* ================================================
+/* =====================================================
    PAGINATION
-================================================ */
+===================================================== */
 
 .pagination-wrapper {
   padding: 15px 20px;
@@ -690,8 +660,6 @@ tbody tr:last-child td {
 }
 
 
-/* PAGE SIZE */
-
 .page-size-section {
   display: flex;
 
@@ -704,12 +672,11 @@ tbody tr:last-child td {
   font-size: 12px;
 }
 
+
 .page-size-select {
   width: 75px;
 }
 
-
-/* PAGE INFO */
 
 .page-info {
   color: #64748b;
@@ -719,12 +686,11 @@ tbody tr:last-child td {
   white-space: nowrap;
 }
 
+
 .page-info strong {
   color: #374151;
 }
 
-
-/* PAGE BUTTONS */
 
 .pagination-buttons {
   display: flex;
@@ -733,6 +699,7 @@ tbody tr:last-child td {
 
   gap: 5px;
 }
+
 
 .page-btn {
   min-width: 34px;
@@ -766,11 +733,13 @@ tbody tr:last-child td {
   transition: 0.15s ease;
 }
 
+
 .page-btn:hover:not(:disabled) {
   background: #f8fafc;
 
   border-color: #cbd5e1;
 }
+
 
 .page-btn.active {
   background: #2563eb;
@@ -780,20 +749,22 @@ tbody tr:last-child td {
   color: #ffffff;
 }
 
+
 .page-btn:disabled {
   opacity: 0.45;
 
   cursor: not-allowed;
 }
 
+
 .page-number {
   min-width: 34px;
 }
 
 
-/* ================================================
+/* =====================================================
    RESPONSIVE
-================================================ */
+===================================================== */
 
 @media (max-width: 1100px) {
 
@@ -803,9 +774,11 @@ tbody tr:last-child td {
     align-items: stretch;
   }
 
+
   .sport-tabs {
     width: 100%;
   }
+
 
   .sport-btn {
     flex: 1;
@@ -813,9 +786,11 @@ tbody tr:last-child td {
     justify-content: center;
   }
 
+
   .date-filters {
     justify-content: flex-end;
   }
+
 }
 
 
@@ -825,9 +800,11 @@ tbody tr:last-child td {
     padding: 18px;
   }
 
+
   .pagination-wrapper {
     flex-wrap: wrap;
   }
+
 
   .page-info {
     order: 3;
@@ -836,6 +813,7 @@ tbody tr:last-child td {
 
     text-align: center;
   }
+
 }
 
 
@@ -845,13 +823,16 @@ tbody tr:last-child td {
     padding: 12px;
   }
 
+
   .sport-tabs {
     flex-direction: column;
   }
 
+
   .sport-btn {
     width: 100%;
   }
+
 
   .date-filters {
     flex-direction: column;
@@ -859,13 +840,6 @@ tbody tr:last-child td {
     align-items: stretch;
   }
 
-  .date-field {
-    width: 100%;
-  }
-
-  .input-wrapper input {
-    width: 100%;
-  }
 
   .search-btn {
     width: 100%;
@@ -873,9 +847,18 @@ tbody tr:last-child td {
     justify-content: center;
   }
 
+
+  .refresh-btn {
+    width: 100%;
+
+    justify-content: center;
+  }
+
+
   .table-header {
     padding: 0 14px;
   }
+
 
   .pagination-wrapper {
     flex-direction: column;
@@ -883,9 +866,11 @@ tbody tr:last-child td {
     align-items: stretch;
   }
 
+
   .page-size-section {
     justify-content: center;
   }
+
 
   .page-info {
     order: unset;
@@ -895,9 +880,11 @@ tbody tr:last-child td {
     text-align: center;
   }
 
+
   .pagination-buttons {
     justify-content: center;
 
     flex-wrap: wrap;
   }
+
 }

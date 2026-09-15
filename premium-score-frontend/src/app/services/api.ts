@@ -63,6 +63,13 @@ export class Api {
     );
   }
 
+ registerWebsite(websiteId: string) {
+  return this.http.patch(
+    `${this.baseApiUrl}/websites/${websiteId}/register`,
+    {}
+  );
+}
+
 
   // =====================================================
   // NEW MATCHES API
