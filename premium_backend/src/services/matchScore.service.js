@@ -2,129 +2,36 @@ const axios = require("axios");
 
 const Match = require("../models/matchModel");
 
-const { getMatchesFromRedis } = require("./matchRedis.service");
+const {
+  getMatchesFromRedis,
+} = require("./matchRedis.service");
 
-// SCORE API
+const redisClient = require("../config/redis");
 
-const SCORE_API = "http://3.6.53.212:3000/api/match/getScore";
+// APIs
 
-// GET SCORE ID ACCORDING TO SPORT
+const GET_ALL_SCORE_ID_API =
+  "http://3.6.53.212:3000/api/match/getAllScoreId";
 
-const getScoreId = (responseData, sportId) => {
-  // CRICKET
-  // sportId = 4
+const GET_SCORE_API =
+  "http://3.6.53.212:3000/api/match/getScore";
 
-  if (Number(sportId) === 4) {
-    const scoreId =
-      responseData?.result?.scorecard?.score?.premiumCricketEventId;
+// REDIS SCORE KEY
 
-    if (
-      scoreId !== undefined &&
-      scoreId !== null &&
-      String(scoreId).trim() !== ""
-    ) {
-      return String(scoreId).trim();
-    }
-
-    return null;
-  }
-
-  // TENNIS
-  // sportId = 1
-
-  if (Number(sportId) === 1) {
-    /*
-      Tennis API response example:
-
-      {
-        "message": "Score Fetched!!!",
-        "result": []
-      }
-
-      Is response me scoreId available nahi hai.
-    */
-
-    const result = responseData?.result;
-
-    // Agar result array hai aur empty hai
-    if (Array.isArray(result) && result.length === 0) {
-      return null;
-    }
-
-    // Agar future me result.match aaye
-    const scoreId =
-      result?.match?._id ??
-      result?.match?.id ??
-      result?._id ??
-      result?.id ??
-      null;
-
-    if (
-      scoreId !== undefined &&
-      scoreId !== null &&
-      String(scoreId).trim() !== ""
-    ) {
-      return String(scoreId).trim();
-    }
-
-    return null;
-  }
-
-  // SOCCER
-  // sportId = 2
-
-  if (Number(sportId) === 2) {
-    const scoreId = responseData?.result?.match?._id;
-
-    if (
-      scoreId !== undefined &&
-      scoreId !== null &&
-      String(scoreId).trim() !== ""
-    ) {
-      return String(scoreId).trim();
-    }
-
-    return null;
-  }
-
-  return null;
+const getScoreRedisKey = (eventId, sportId) => {
+  return `score:eventId:${eventId}:sportId:${sportId}`;
 };
 
-// GET SCORE FOR ONE MATCH
+// STEP 1
+// GET ALL SCORE IDS
 
-const fetchScoreForMatch = async (match) => {
+const getAllScoreIds = async () => {
   try {
-    const eventId = String(match?.eventId || "").trim();
+    console.log("\n==============================================");
+    console.log("1️⃣ GETTING ALL SCORE IDS");
+    console.log("==============================================");
 
-    // SPORT ID
-
-    const sportId = Number(match?.sportId);
-
-    if (!eventId) {
-      console.log("⚠️ Score skipped: eventId missing");
-
-      return null;
-    }
-
-    if (![1, 2, 4].includes(sportId)) {
-      console.log(
-        `⚠️ Score skipped: invalid sportId=${sportId} | eventId=${eventId}`,
-      );
-
-      return null;
-    }
-
-    // URL
-
-    const url = `${SCORE_API}/${eventId}/${sportId}`;
-
-    console.log(`🎯 Fetching score | eventId=${eventId} | sportId=${sportId}`);
-
-    console.log(`🌐 Score URL: ${url}`);
-
-    // API CALL
-
-    const response = await axios.get(url, {
+    const response = await axios.get(GET_ALL_SCORE_ID_API, {
       timeout: 30000,
 
       headers: {
@@ -132,15 +39,243 @@ const fetchScoreForMatch = async (match) => {
       },
     });
 
-    // RESPONSE
+    const result = response?.data?.result;
 
-    const responseData = response?.data;
+    if (!Array.isArray(result)) {
+      console.log("⚠️ getAllScoreId result is not an array");
 
-    // CHECK EVENT NOT FOUND
+      return new Map();
+    }
 
-    const scoreMessage = responseData?.result?.scorecard?.message;
+    console.log(
+      `📦 Total scoreIds received: ${result.length}`,
+    );
 
-    if (scoreMessage === "Event not found.") {
+    const scoreIdMap = new Map();
+
+    for (const item of result) {
+      const eventId = String(
+        item?.eventId || "",
+      ).trim();
+
+      const scoreId = String(
+        item?.scoreId || "",
+      ).trim();
+
+      if (!eventId || !scoreId || scoreId === "0") {
+        continue;
+      }
+
+      scoreIdMap.set(eventId, scoreId);
+    }
+
+    console.log(
+      `✅ Valid scoreId mappings: ${scoreIdMap.size}`,
+    );
+
+    return scoreIdMap;
+  } catch (error) {
+    if (error.response) {
+      console.error(
+        "❌ getAllScoreId API failed",
+      );
+
+      console.error(
+        "HTTP Status:",
+        error.response.status,
+      );
+
+      console.error(
+        "Response:",
+        JSON.stringify(
+          error.response.data,
+          null,
+          2,
+        ),
+      );
+
+      return new Map();
+    }
+
+    if (error.code === "ECONNABORTED") {
+      console.error(
+        "⏰ getAllScoreId API timeout",
+      );
+
+      return new Map();
+    }
+
+    console.error(
+      "❌ getAllScoreId error:",
+      error.message,
+    );
+
+    return new Map();
+  }
+};
+
+// UPDATE MISSING SCORE IDS IN DB
+
+const updateMissingScoreIds = async (
+  matches,
+  scoreIdMap,
+) => {
+  let updatedCount = 0;
+  let alreadyExistsCount = 0;
+  let notFoundCount = 0;
+
+  for (const match of matches) {
+    const eventId = String(
+      match?.eventId || "",
+    ).trim();
+
+    const sportId = Number(match?.sportId);
+
+    if (!eventId || ![1, 2, 4].includes(sportId)) {
+      continue;
+    }
+
+    const currentScoreId = String(
+      match?.scoreId ?? "",
+    ).trim();
+
+    // Already has scoreId
+
+    if (
+      currentScoreId &&
+      currentScoreId !== "0"
+    ) {
+      alreadyExistsCount++;
+
+      continue;
+    }
+
+    // Find scoreId from getAllScoreId
+
+    const scoreId = scoreIdMap.get(eventId);
+
+    if (!scoreId) {
+      notFoundCount++;
+
+      console.log(
+        `⚠️ scoreId not found | eventId=${eventId} | sportId=${sportId}`,
+      );
+
+      continue;
+    }
+
+    // Update MongoDB
+
+    const updateResult = await Match.updateOne(
+      {
+        eventId,
+        sportId,
+      },
+      {
+        $set: {
+          scoreId,
+        },
+      },
+    );
+
+    if (updateResult.matchedCount > 0) {
+      updatedCount++;
+
+      // Redis match object bhi update kar do
+      match.scoreId = scoreId;
+
+      console.log(
+        `✅ scoreId updated | eventId=${eventId} | sportId=${sportId} | scoreId=${scoreId}`,
+      );
+    } else {
+      console.log(
+        `⚠️ Match not found in DB | eventId=${eventId} | sportId=${sportId}`,
+      );
+    }
+  }
+
+ 
+  return {
+    updatedCount,
+    alreadyExistsCount,
+    notFoundCount,
+  };
+};
+
+// STEP 3
+// GET ACTUAL SCORE
+
+const fetchActualScore = async (match) => {
+  try {
+    const eventId = String(
+      match?.eventId || "",
+    ).trim();
+
+    const sportId = Number(match?.sportId);
+
+    const scoreId = String(
+      match?.scoreId || "",
+    ).trim();
+
+    if (!eventId) {
+      console.log(
+        "⚠️ Actual score skipped: eventId missing",
+      );
+
+      return null;
+    }
+
+    if (![1, 2, 4].includes(sportId)) {
+      console.log(
+        `⚠️ Actual score skipped: invalid sportId=${sportId}`,
+      );
+
+      return null;
+    }
+
+    if (!scoreId || scoreId === "0") {
+      console.log(
+        `⚠️ Actual score skipped: scoreId missing | eventId=${eventId}`,
+      );
+
+      return null;
+    }
+
+    // -------------------------------------------------
+    // GET SCORE API
+    // -------------------------------------------------
+
+    const url =
+      `${GET_SCORE_API}/${eventId}/${sportId}`;
+
+    console.log(
+      `\n🎯 GETTING ACTUAL SCORE | eventId=${eventId} | sportId=${sportId} | scoreId=${scoreId}`,
+    );
+
+    console.log(
+      `🌐 ${url}`,
+    );
+
+    const scoreGet = await axios.get(url, {
+      timeout: 30000,
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const responseData = scoreGet?.data;
+
+    // =================================================
+    // EVENT NOT FOUND
+    // =================================================
+
+    const scoreMessage =
+      responseData?.result?.scorecard?.message;
+
+    if (
+      scoreMessage === "Event not found."
+    ) {
       console.log(
         `⚠️ Event not found | eventId=${eventId} | sportId=${sportId}`,
       );
@@ -148,91 +283,128 @@ const fetchScoreForMatch = async (match) => {
       return null;
     }
 
-    // GET SCORE ID
+    // =================================================
+    // PREPARE SCORE RESPONSE
+    // =================================================
 
-    const scoreId = getScoreId(responseData, sportId);
+    let resp;
 
-    // SCORE ID NOT FOUND
+    // =================================================
+    // CRICKET
+    // =================================================
 
-    if (!scoreId) {
-      console.log(
-        `⚠️ scoreId not available | eventId=${eventId} | sportId=${sportId}`,
-      );
+    if (sportId === 4) {
+      resp = {
+        scorecard:
+          responseData?.result?.scorecard,
 
-      return null;
+        timeline:
+          responseData?.result?.timeline,
+      };
     }
 
-    // UPDATE MONGODB
+    // =================================================
+    // TENNIS
+    // =================================================
 
-    const updateResult = await Match.updateOne(
-      {
-        eventId: eventId,
-        sportId: sportId,
-      },
+    else if (sportId === 1) {
+      // Tennis me jo actual response aa raha hai
+      // usko preserve kar rahe hain
 
-      {
-        $set: {
-          scoreId: scoreId,
-        },
-      },
+      resp = {
+        result:
+          responseData?.result ?? null,
+      };
+    }
+
+    // =================================================
+    // SOCCER
+    // =================================================
+
+    else if (sportId === 2) {
+      // Soccer me jo actual result aa raha hai
+      // usko preserve kar rahe hain
+
+      resp = {
+        result:
+          responseData?.result ?? null,
+      };
+    }
+
+    // =================================================
+    // SAVE SCORE IN REDIS
+    // =================================================
+
+    const redisKey =
+      getScoreRedisKey(
+        eventId,
+        sportId,
+      );
+
+    const redisData = {
+      eventId,
+      sportId,
+      scoreId,
+      data: resp,
+      updatedAt: new Date().toISOString(),
+    };
+
+    await redisClient.set(
+      redisKey,
+      JSON.stringify(redisData),
     );
-
-    // MATCH NOT FOUND
-
-    if (updateResult.matchedCount === 0) {
-      console.log(
-        `⚠️ Match not found in DB | eventId=${eventId} | sportId=${sportId}`,
-      );
-
-      return null;
-    }
 
     console.log(
-      `✅ scoreId updated | eventId=${eventId} | sportId=${sportId} | scoreId=${scoreId}`,
+      `✅ Actual score saved in Redis | key=${redisKey}`,
     );
 
-    return {
-      eventId: eventId,
-      sportId: sportId,
-      scoreId: scoreId,
-    };
+    return redisData;
   } catch (error) {
-    // AXIOS RESPONSE ERROR
-
     if (error.response) {
       console.error(
-        `❌ Score API failed | eventId=${match?.eventId} | sportId=${match?.sportId}`,
+        `❌ getScore API failed | eventId=${match?.eventId} | sportId=${match?.sportId}`,
       );
 
-      console.error(`HTTP Status: ${error.response.status}`);
+      console.error(
+        "HTTP Status:",
+        error.response.status,
+      );
 
-      console.error("Response:", JSON.stringify(error.response.data, null, 2));
+      console.error(
+        "Response:",
+        JSON.stringify(
+          error.response.data,
+          null,
+          2,
+        ),
+      );
 
       return null;
     }
 
-    // TIMEOUT
-
-    if (error.code === "ECONNABORTED") {
+    if (
+      error.code === "ECONNABORTED" ||
+      error.code === "ETIMEDOUT"
+    ) {
       console.error(
-        `⏰ Score API timeout | eventId=${match?.eventId} | sportId=${match?.sportId}`,
+        `⏰ getScore API timeout | eventId=${match?.eventId} | sportId=${match?.sportId}`,
       );
 
       return null;
     }
 
-    // CONNECTION REFUSED
-
-    if (error.code === "ECONNREFUSED") {
+    if (
+      error.code === "ECONNREFUSED"
+    ) {
       console.error(
-        `🔌 Score API connection refused | eventId=${match?.eventId} | sportId=${match?.sportId}`,
+        `🔌 getScore connection refused | eventId=${match?.eventId} | sportId=${match?.sportId}`,
       );
 
       return null;
     }
 
     console.error(
-      `❌ Score failed | eventId=${match?.eventId} | sportId=${match?.sportId}:`,
+      `❌ Actual score failed | eventId=${match?.eventId} | sportId=${match?.sportId}:`,
       error.message,
     );
 
@@ -240,56 +412,64 @@ const fetchScoreForMatch = async (match) => {
   }
 };
 
-// PROCESS ALL MATCHES FROM REDIS
+// PROCESS ALL MATCHES
 
 const processScoresFromRedis = async () => {
   try {
+    console.log("\n");
+    console.log("==============================================");
     console.log("🎯 SCORE SERVICE STARTED");
+    console.log("==============================================");
 
+    // -------------------------------------------------
     // GET MATCHES FROM REDIS
+    // -------------------------------------------------
 
-    const matches = await getMatchesFromRedis();
+    const matches =
+      await getMatchesFromRedis();
 
-    // NO MATCHES
-
-    if (!Array.isArray(matches) || matches.length === 0) {
-      console.log("⚠️ No matches available in Redis");
+    if (
+      !Array.isArray(matches) ||
+      matches.length === 0
+    ) {
+      console.log(
+        "⚠️ No matches available in Redis",
+      );
 
       return;
     }
 
-    console.log(`📦 Processing ${matches.length} matches from Redis`);
-
-    // SPORT COUNT
-
-    const cricketMatches = matches.filter(
-      (match) => Number(match.sportId) === 4,
+    console.log(
+      `📦 Matches from Redis: ${matches.length}`,
     );
 
-    const tennisMatches = matches.filter(
-      (match) => Number(match.sportId) === 1,
+    // STEP 1
+    // GET ALL SCORE IDS
+
+    const scoreIdMap =
+      await getAllScoreIds();
+
+    // STEP 2
+    // UPDATE MISSING SCORE IDS
+
+    await updateMissingScoreIds(
+      matches,
+      scoreIdMap,
     );
 
-    const soccerMatches = matches.filter(
-      (match) => Number(match.sportId) === 2,
-    );
+    // STEP 3
+    // GET ACTUAL SCORE
 
-    console.log(`🏏 Cricket: ${cricketMatches.length}`);
-
-    console.log(`🎾 Tennis: ${tennisMatches.length}`);
-
-    console.log(`⚽ Soccer: ${soccerMatches.length}`);
-
-    // COUNTERS
+    console.log("\n==============================================");
+    console.log("3️⃣ GETTING ACTUAL SCORE");
+    console.log("==============================================");
 
     let successCount = 0;
-
     let failedCount = 0;
 
-    // PROCESS MATCHES
-
     for (const match of matches) {
-      const result = await fetchScoreForMatch(match);
+      const result =
+        await fetchActualScore(match);
 
       if (result) {
         successCount++;
@@ -298,15 +478,21 @@ const processScoresFromRedis = async () => {
       }
     }
 
-    // COMPLETE
-    console.log(`✅ Score updated: ${successCount}`);
-    console.log(`⚠️ Score not available/failed: ${failedCount}`);
+
+    console.log("==============================================\n");
   } catch (error) {
-    console.error("❌ processScoresFromRedis error:", error.message);
+    console.error(
+      "❌ processScoresFromRedis error:",
+      error.message,
+    );
   }
 };
 
+
+
 module.exports = {
-  fetchScoreForMatch,
+  getAllScoreIds,
+  updateMissingScoreIds,
+  fetchActualScore,
   processScoresFromRedis,
 };
