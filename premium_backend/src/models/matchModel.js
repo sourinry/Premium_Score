@@ -5,7 +5,6 @@ const matchSchema = new mongoose.Schema(
     eventId: {
       type: String,
       required: true,
-      unique: true,
       index: true,
     },
 
@@ -32,6 +31,7 @@ const matchSchema = new mongoose.Schema(
     sportId: {
       type: Number,
       default: null,
+      index: true,
     },
 
     sportName: {
@@ -96,7 +96,28 @@ const matchSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
-module.exports = mongoose.models.Match || mongoose.model("Match", matchSchema);
+
+// =====================================================
+// EVENT + SPORT UNIQUE
+// =====================================================
+
+matchSchema.index(
+  {
+    eventId: 1,
+    sportId: 1,
+  },
+  {
+    unique: true,
+  }
+);
+
+
+module.exports =
+  mongoose.models.Match ||
+  mongoose.model(
+    "Match",
+    matchSchema
+  );

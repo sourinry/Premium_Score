@@ -4,6 +4,17 @@ const cron = require("node-cron");
 const Match = require("../models/matchModel");
 
 // =====================================================
+// SPORTS
+// =====================================================
+
+const SPORT_IDS = [4, 1, 2];
+
+// 4 = Cricket
+// 1 = Tennis
+// 2 = Soccer
+
+
+// =====================================================
 // GET TEAM NAME
 // =====================================================
 
@@ -12,7 +23,6 @@ const getTeamName = (runner) => {
     return null;
   }
 
-  // Runner agar direct string hai
   if (typeof runner === "string") {
     return runner.trim() || null;
   }
@@ -29,14 +39,12 @@ const getTeamName = (runner) => {
   );
 };
 
+
 // =====================================================
 // GET HOME / AWAY TEAM
 // =====================================================
 
-const getHomeAwayTeams = (
-  matchRunners,
-  eventName
-) => {
+const getHomeAwayTeams = (matchRunners, eventName) => {
   let homeTeam = null;
   let awayTeam = null;
 
@@ -48,21 +56,12 @@ const getHomeAwayTeams = (
     Array.isArray(matchRunners) &&
     matchRunners.length >= 2
   ) {
-    homeTeam = getTeamName(
-      matchRunners[0]
-    );
-
-    awayTeam = getTeamName(
-      matchRunners[1]
-    );
+    homeTeam = getTeamName(matchRunners[0]);
+    awayTeam = getTeamName(matchRunners[1]);
   }
 
   // -----------------------------------------------------
   // Fallback eventName
-  // Example:
-  // India v Australia
-  // India vs Australia
-  // India - Australia
   // -----------------------------------------------------
 
   if (
@@ -107,15 +106,16 @@ const getHomeAwayTeams = (
   };
 };
 
+
 // =====================================================
 // GET MATCH TYPE
 // =====================================================
 
 const getMatchType = (match) => {
   if (
-    match.sportId == 4 &&
+    Number(match.sportId) === 4 &&
     Array.isArray(match.matchRunners) &&
-    match.matchRunners.length == 3
+    match.matchRunners.length === 3
   ) {
     return "Test";
   }
@@ -123,18 +123,15 @@ const getMatchType = (match) => {
   return "All";
 };
 
+
 // =====================================================
-// FETCH MATCHES
+// FETCH MATCHES FOR ONE SPORT
 // =====================================================
 
-const fetchMatches = async () => {
+const fetchMatchesBySport = async (sportId) => {
   try {
     const apiUrl =
       process.env.MAIN_REDIS_MATCHES_API;
-
-    // =================================================
-    // API URL CHECK
-    // =================================================
 
     if (!apiUrl) {
       console.error(
@@ -145,7 +142,22 @@ const fetchMatches = async () => {
     }
 
     console.log(
-      `🔄 Fetching matches: ${new Date().toISOString()}`
+      `\n🔄 Fetching matches for sportId=${sportId}`
+    );
+
+    // =================================================
+    // CREATE URL
+    // =================================================
+
+    const url = new URL(apiUrl);
+
+    url.searchParams.set(
+      "sportId",
+      String(sportId)
+    );
+
+    console.log(
+      `🌐 API URL: ${url.toString()}`
     );
 
     // =================================================
@@ -153,14 +165,10 @@ const fetchMatches = async () => {
     // =================================================
 
     const response = await axios.get(
-      apiUrl,
+      url.toString(),
       {
         timeout: 30000,
       }
-    );
-
-    console.log(
-      "✅ Matches API response received"
     );
 
     // =================================================
@@ -174,7 +182,7 @@ const fetchMatches = async () => {
       : [];
 
     console.log(
-      `📦 Total matches received: ${matches.length}`
+      `📦 sportId=${sportId} matches received: ${matches.length}`
     );
 
     // =================================================
@@ -183,27 +191,36 @@ const fetchMatches = async () => {
 
     if (!matches.length) {
       console.log(
-        "⚠️ No matches found - old matches will NOT be changed"
+        `⚠️ No matches found for sportId=${sportId}`
       );
 
       return;
     }
 
     // =================================================
-    // EVENT IDS
+    // VALID MATCHES
     // =================================================
 
-    const eventIds = matches
-      .map((dt) => dt.eventId)
-      .filter(Boolean);
+    const validMatches = matches.filter(
+      (dt) =>
+        dt &&
+        dt.eventId !== undefined &&
+        dt.eventId !== null &&
+        String(dt.eventId).trim() !== ""
+    );
+
+    const eventIds = validMatches.map(
+      (dt) =>
+        String(dt.eventId).trim()
+    );
 
     console.log(
-      `🔎 Valid event IDs: ${eventIds.length}`
+      `🔎 sportId=${sportId} valid event IDs: ${eventIds.length}`
     );
 
     if (!eventIds.length) {
       console.log(
-        "⚠️ No valid event IDs found"
+        `⚠️ No valid event IDs for sportId=${sportId}`
       );
 
       return;
@@ -219,25 +236,29 @@ const fetchMatches = async () => {
           eventId: {
             $in: eventIds,
           },
+
+          sportId: sportId,
         },
         {
           eventId: 1,
+          sportId: 1,
         }
       ).lean();
 
     const existingEventIds =
       new Set(
-        existingMatches.map((dt) =>
-          String(dt.eventId)
+        existingMatches.map(
+          (dt) =>
+            String(dt.eventId)
         )
       );
 
     console.log(
-      `📌 Existing matches: ${existingEventIds.size}`
+      `📌 sportId=${sportId} existing matches: ${existingEventIds.size}`
     );
 
     // =================================================
-    // MARK CURRENT API MATCHES AS ACTIVE
+    // RESTORE OLD MATCHES
     // =================================================
 
     const activeResult =
@@ -246,6 +267,9 @@ const fetchMatches = async () => {
           eventId: {
             $in: eventIds,
           },
+
+          sportId: sportId,
+
           isOld: true,
         },
         {
@@ -255,22 +279,28 @@ const fetchMatches = async () => {
         }
       );
 
-    if (activeResult.modifiedCount > 0) {
+    if (
+      activeResult.modifiedCount > 0
+    ) {
       console.log(
-        `🟢 Old matches restored: ${activeResult.modifiedCount}`
+        `🟢 sportId=${sportId} restored old matches: ${activeResult.modifiedCount}`
       );
     }
 
     // =================================================
     // MARK MISSING MATCHES AS OLD
+    // ONLY FOR THIS SPORT
     // =================================================
 
     const oldResult =
       await Match.updateMany(
         {
+          sportId: sportId,
+
           eventId: {
             $nin: eventIds,
           },
+
           isOld: false,
         },
         {
@@ -280,33 +310,37 @@ const fetchMatches = async () => {
         }
       );
 
-    console.log(
-      `📦 Matches marked old: ${oldResult.modifiedCount}`
-    );
+    if (
+      oldResult.modifiedCount > 0
+    ) {
+      console.log(
+        `📦 sportId=${sportId} marked old: ${oldResult.modifiedCount}`
+      );
+    }
 
     // =================================================
     // NEW MATCHES
     // =================================================
 
-    const notExistsMatch =
-      matches.filter(
+    const newMatches =
+      validMatches.filter(
         (dt) =>
-          dt.eventId &&
           !existingEventIds.has(
-            String(dt.eventId)
+            String(dt.eventId).trim()
           )
       );
 
     console.log(
-      `🆕 New matches found: ${notExistsMatch.length}`
+      `🆕 sportId=${sportId} new matches: ${newMatches.length}`
     );
 
     // =================================================
     // PREPARE NEW MATCHES
+    // EXACTLY ACCORDING TO YOUR SCHEMA
     // =================================================
 
     const addNewMatch =
-      notExistsMatch.map((dt) => {
+      newMatches.map((dt) => {
         const {
           homeTeam,
           awayTeam,
@@ -316,7 +350,8 @@ const fetchMatches = async () => {
         );
 
         return {
-          eventId: dt.eventId,
+          eventId:
+            String(dt.eventId).trim(),
 
           marketId:
             dt.marketId || null,
@@ -328,10 +363,17 @@ const fetchMatches = async () => {
             dt.competitionName || null,
 
           competitionId:
-            dt.competitionId || null,
+            dt.competitionId !== undefined &&
+            dt.competitionId !== null
+              ? String(dt.competitionId)
+              : null,
 
+          // IMPORTANT
           sportId:
-            dt.sportId ?? null,
+            dt.sportId !== undefined &&
+            dt.sportId !== null
+              ? Number(dt.sportId)
+              : sportId,
 
           sportName:
             dt.sportName || null,
@@ -339,9 +381,8 @@ const fetchMatches = async () => {
           openDate:
             dt.openDate || null,
 
-          isResult: false,
-
-          isOld: false,
+          isResult:
+            Boolean(dt.isResult),
 
           scoreId:
             dt.scoreId || null,
@@ -352,6 +393,8 @@ const fetchMatches = async () => {
           matchType:
             getMatchType(dt),
 
+          isOld: false,
+
           homeTeam,
 
           awayTeam,
@@ -360,7 +403,9 @@ const fetchMatches = async () => {
             dt.inning_info || null,
 
           matchRuners:
-            dt.matchRunners || [],
+            Array.isArray(dt.matchRunners)
+              ? dt.matchRunners
+              : [],
 
           match_ka_type:
             dt.match_ka_type || null,
@@ -382,17 +427,17 @@ const fetchMatches = async () => {
           );
 
         console.log(
-          `✅ ${insertedMatches.length} new matches inserted`
+          `✅ sportId=${sportId}: ${insertedMatches.length} matches inserted`
         );
       } catch (insertError) {
         console.error(
-          "❌ Error inserting new matches:",
+          `❌ sportId=${sportId} insert error:`,
           insertError.message
         );
       }
     } else {
       console.log(
-        "ℹ️ No new matches to insert"
+        `ℹ️ sportId=${sportId}: no new matches to insert`
       );
     }
 
@@ -401,13 +446,11 @@ const fetchMatches = async () => {
     // =================================================
 
     const updateOperations =
-      matches
-        .filter(
-          (dt) =>
-            dt.eventId &&
-            existingEventIds.has(
-              String(dt.eventId)
-            )
+      validMatches
+        .filter((dt) =>
+          existingEventIds.has(
+            String(dt.eventId).trim()
+          )
         )
         .map((dt) => {
           const {
@@ -421,7 +464,11 @@ const fetchMatches = async () => {
           return {
             updateOne: {
               filter: {
-                eventId: dt.eventId,
+                eventId:
+                  String(dt.eventId).trim(),
+
+                sportId:
+                  sportId,
               },
 
               update: {
@@ -436,16 +483,27 @@ const fetchMatches = async () => {
                     dt.competitionName || null,
 
                   competitionId:
-                    dt.competitionId || null,
+                    dt.competitionId !== undefined &&
+                    dt.competitionId !== null
+                      ? String(
+                          dt.competitionId
+                        )
+                      : null,
 
                   sportId:
-                    dt.sportId ?? null,
+                    dt.sportId !== undefined &&
+                    dt.sportId !== null
+                      ? Number(dt.sportId)
+                      : sportId,
 
                   sportName:
                     dt.sportName || null,
 
                   openDate:
                     dt.openDate || null,
+
+                  isResult:
+                    Boolean(dt.isResult),
 
                   scoreId:
                     dt.scoreId || null,
@@ -466,7 +524,11 @@ const fetchMatches = async () => {
                     dt.inning_info || null,
 
                   matchRuners:
-                    dt.matchRunners || [],
+                    Array.isArray(
+                      dt.matchRunners
+                    )
+                      ? dt.matchRunners
+                      : [],
 
                   match_ka_type:
                     dt.match_ka_type || null,
@@ -483,36 +545,28 @@ const fetchMatches = async () => {
     if (updateOperations.length > 0) {
       const updateResult =
         await Match.bulkWrite(
-          updateOperations
+          updateOperations,
+          {
+            ordered: false,
+          }
         );
 
       console.log(
-        `🔄 Existing matches updated: ${updateResult.modifiedCount}`
+        `🔄 sportId=${sportId}: ${updateResult.modifiedCount} matches updated`
       );
     } else {
       console.log(
-        "ℹ️ No existing matches to update"
+        `ℹ️ sportId=${sportId}: no existing matches to update`
       );
     }
 
-    // =================================================
-    // COMPLETE
-    // =================================================
-
     console.log(
-      "=========================================="
+      `✅ sportId=${sportId} sync completed`
     );
 
-    console.log(
-      "✅ Match sync completed successfully"
-    );
-
-    console.log(
-      "=========================================="
-    );
   } catch (error) {
     console.error(
-      "❌ Match scheduler failed:",
+      `❌ sportId=${sportId} scheduler failed:`,
       error.message
     );
 
@@ -523,7 +577,7 @@ const fetchMatches = async () => {
       );
 
       console.error(
-        "API Error Response:",
+        "API Error:",
         JSON.stringify(
           error.response.data,
           null,
@@ -533,24 +587,62 @@ const fetchMatches = async () => {
     }
 
     if (
-      error.code ===
-      "ECONNABORTED"
+      error.code === "ECONNABORTED"
     ) {
       console.error(
-        "⏰ Match API request timed out"
+        `⏰ sportId=${sportId} API request timed out`
       );
     }
 
     if (
-      error.code ===
-      "ECONNREFUSED"
+      error.code === "ECONNREFUSED"
     ) {
       console.error(
-        "🔌 Match API connection refused"
+        `🔌 sportId=${sportId} API connection refused`
       );
     }
   }
 };
+
+
+// =====================================================
+// FETCH ALL 3 SPORTS
+// =====================================================
+
+const fetchMatches = async () => {
+  console.log(
+    "\n=========================================="
+  );
+
+  console.log(
+    "🚀 STARTING ALL SPORTS MATCH SYNC"
+  );
+
+  console.log(
+    "=========================================="
+  );
+
+  // 4 = Cricket
+  // 1 = Tennis
+  // 2 = Soccer
+
+  for (const sportId of SPORT_IDS) {
+    await fetchMatchesBySport(sportId);
+  }
+
+  console.log(
+    "\n=========================================="
+  );
+
+  console.log(
+    "✅ ALL SPORTS MATCH SYNC COMPLETED"
+  );
+
+  console.log(
+    "==========================================\n"
+  );
+};
+
 
 // =====================================================
 // START SCHEDULER
@@ -602,6 +694,7 @@ const startMatchScheduler = () => {
   );
 };
 
+
 // =====================================================
 // EXPORT
 // =====================================================
@@ -609,4 +702,5 @@ const startMatchScheduler = () => {
 module.exports = {
   startMatchScheduler,
   fetchMatches,
+  fetchMatchesBySport,
 };
