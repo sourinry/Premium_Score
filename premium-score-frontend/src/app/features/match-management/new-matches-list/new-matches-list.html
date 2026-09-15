@@ -1,0 +1,562 @@
+<div class="matches-page">
+
+  <!-- ========================================= -->
+  <!-- FILTER CARD -->
+  <!-- ========================================= -->
+
+  <div class="filter-card">
+
+    <!-- SPORT TABS -->
+
+    <div class="sport-tabs">
+
+      <button
+        type="button"
+        class="sport-btn cricket"
+        [class.active]="selectedSport === 'Cricket'"
+        (click)="selectSport('Cricket')">
+
+        <span class="sport-icon">🏏</span>
+
+        Cricket
+
+      </button>
+
+
+      <button
+        type="button"
+        class="sport-btn soccer"
+        [class.active]="selectedSport === 'Soccer'"
+        (click)="selectSport('Soccer')">
+
+        <span class="sport-icon">⚽</span>
+
+        Soccer
+
+      </button>
+
+
+      <button
+        type="button"
+        class="sport-btn tennis"
+        [class.active]="selectedSport === 'Tennis'"
+        (click)="selectSport('Tennis')">
+
+        <span class="sport-icon">🎾</span>
+
+        Tennis
+
+      </button>
+
+    </div>
+
+
+    <!-- DATE FILTERS -->
+
+    <div class="date-filters">
+
+      <div class="date-field">
+
+        <label for="fromDate">
+          From
+        </label>
+
+        <div class="input-wrapper">
+
+          <input
+            id="fromDate"
+            type="date"
+            [(ngModel)]="fromDate">
+
+        </div>
+
+      </div>
+
+
+      <div class="date-field">
+
+        <label for="toDate">
+          To
+        </label>
+
+        <div class="input-wrapper">
+
+          <input
+            id="toDate"
+            type="date"
+            [(ngModel)]="toDate">
+
+        </div>
+
+      </div>
+
+
+      <button
+        type="button"
+        class="search-btn"
+        (click)="search()">
+
+        <span>⌕</span>
+
+        Search
+
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ========================================= -->
+  <!-- TABLE CARD -->
+  <!-- ========================================= -->
+
+  <div class="table-card">
+
+
+    <!-- TABLE HEADER -->
+
+    <div class="table-header">
+
+      <div class="table-title">
+
+        <h2>
+          New Matches
+        </h2>
+
+        <span class="match-count">
+
+          {{ totalItems }} Matches
+
+        </span>
+
+      </div>
+
+
+      <div class="live-indicator">
+
+        <span></span>
+
+        Live
+
+      </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- LOADING -->
+    <!-- ========================================= -->
+
+    <div
+      *ngIf="isLoading"
+      class="loading-container">
+
+      <div
+        class="spinner-border text-primary"
+        role="status">
+
+        <span class="visually-hidden">
+          Loading...
+        </span>
+
+      </div>
+
+      <div class="loading-text">
+        Loading matches...
+      </div>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- TABLE -->
+    <!-- ========================================= -->
+
+    <div
+      *ngIf="!isLoading"
+      class="table-container">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th class="number-col">
+              #
+            </th>
+
+            <th>
+              Mkt ID
+            </th>
+
+            <th class="event-col">
+              Event Name
+            </th>
+
+            <th>
+              Score ID
+            </th>
+
+            <th>
+              Source
+            </th>
+
+            <th>
+              Open Date
+            </th>
+
+            <th class="action-col">
+              Action
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <!-- ===================================== -->
+          <!-- MATCH DATA -->
+          <!-- ===================================== -->
+
+          <tr
+            *ngFor="
+              let match of matches;
+              let i = index;
+              trackBy: trackByEventId
+            ">
+
+
+            <!-- SERIAL NUMBER -->
+
+            <td class="number">
+
+              {{ getSerialNumber(i) }}
+
+            </td>
+
+
+            <!-- MARKET ID -->
+
+            <td>
+
+              <div class="market-id">
+
+                <span
+                  *ngFor="
+                    let id of getMarketIds(match)
+                  ">
+
+                  {{ id }}
+
+                </span>
+
+              </div>
+
+            </td>
+
+
+            <!-- EVENT NAME -->
+
+            <td class="event-name">
+
+              <div class="event-title">
+                {{ match.eventName }}
+              </div>
+
+              <div
+                class="competition-name"
+                *ngIf="match.competitionName">
+
+                {{ match.competitionName }}
+
+              </div>
+
+            </td>
+
+
+            <!-- SCORE ID -->
+
+            <td>
+
+              <span
+                class="score-id"
+                [class.not-assigned]="
+                  !match.scoreId ||
+                  match.scoreId === '0'
+                ">
+
+                {{
+                  !match.scoreId ||
+                  match.scoreId === '0'
+                    ? 'Not Assigned'
+                    : match.scoreId
+                }}
+
+              </span>
+
+            </td>
+
+
+            <!-- SOURCE -->
+
+            <td>
+
+              <span class="source-badge">
+
+                {{
+                  !match.scoreId ||
+                  match.scoreId === '0'
+                    ? '—'
+                    : 'API'
+                }}
+
+              </span>
+
+            </td>
+
+
+            <!-- OPEN DATE -->
+
+            <td class="open-date">
+
+              {{ getMatchDate(match.openDate) }}
+
+            </td>
+
+
+            <!-- ACTION -->
+
+            <td>
+
+              <div class="actions">
+
+                <button
+                  type="button"
+                  class="action-btn score"
+                  (click)="checkScore(match)">
+
+                  Check Score
+
+                </button>
+
+
+                <button
+                  type="button"
+                  class="action-btn our-fancy"
+                  (click)="ourFancy(match)">
+
+                  Our Fancy
+
+                </button>
+
+
+                <button
+                  type="button"
+                  class="action-btn all-fancy"
+                  (click)="allFancy(match)">
+
+                  All Fancy
+
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+
+
+          <!-- ===================================== -->
+          <!-- NO DATA -->
+          <!-- ===================================== -->
+
+          <tr
+            *ngIf="matches.length === 0">
+
+            <td
+              colspan="7"
+              class="no-data">
+
+              <div class="no-data-icon">
+                📋
+              </div>
+
+              <div class="no-data-title">
+                No matches found
+              </div>
+
+              <div class="no-data-text">
+                There are no matches available for
+                {{ selectedSport }}.
+              </div>
+
+            </td>
+
+          </tr>
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- ========================================= -->
+    <!-- PAGINATION -->
+    <!-- ========================================= -->
+
+    <div
+      *ngIf="!isLoading && totalItems > 0"
+      class="pagination-wrapper">
+
+
+      <!-- PAGE SIZE -->
+
+      <div class="page-size-section">
+
+        <span>
+          Show
+        </span>
+
+        <select
+          class="form-select form-select-sm page-size-select"
+          [(ngModel)]="pageSize"
+          (change)="changePageSize()">
+
+          <option
+            *ngFor="let size of pageSizeOptions"
+            [ngValue]="size">
+
+            {{ size }}
+
+          </option>
+
+        </select>
+
+        <span>
+          entries
+        </span>
+
+      </div>
+
+
+      <!-- PAGE INFORMATION -->
+
+      <div class="page-info">
+
+        Showing
+
+        <strong>
+          {{ getStartItem() }}
+        </strong>
+
+        -
+
+        <strong>
+          {{ getEndItem() }}
+        </strong>
+
+        of
+
+        <strong>
+          {{ totalItems }}
+        </strong>
+
+        matches
+
+      </div>
+
+
+      <!-- PAGINATION -->
+
+      <div class="pagination-buttons">
+
+
+        <!-- FIRST -->
+
+        <button
+          type="button"
+          class="page-btn"
+          [disabled]="currentPage === 1"
+          (click)="firstPage()">
+
+          <i class="bi bi-chevron-double-left"></i>
+
+          First
+
+        </button>
+
+
+        <!-- PREVIOUS -->
+
+        <button
+          type="button"
+          class="page-btn"
+          [disabled]="currentPage === 1"
+          (click)="previousPage()">
+
+          <i class="bi bi-chevron-left"></i>
+
+          Previous
+
+        </button>
+
+
+        <!-- PAGE NUMBERS -->
+
+        <button
+          type="button"
+          class="page-btn page-number"
+          *ngFor="let page of getPages()"
+          [class.active]="currentPage === page"
+          (click)="changePage(page)">
+
+          {{ page }}
+
+        </button>
+
+
+        <!-- NEXT -->
+
+        <button
+          type="button"
+          class="page-btn"
+          [disabled]="
+            currentPage === totalPages
+          "
+          (click)="nextPage()">
+
+          Next
+
+          <i class="bi bi-chevron-right"></i>
+
+        </button>
+
+
+        <!-- LAST -->
+
+        <button
+          type="button"
+          class="page-btn"
+          [disabled]="
+            currentPage === totalPages
+          "
+          (click)="lastPage()">
+
+          Last
+
+          <i class="bi bi-chevron-double-right"></i>
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
