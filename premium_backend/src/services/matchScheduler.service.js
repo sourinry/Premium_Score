@@ -3,106 +3,15 @@ const cron = require("node-cron");
 
 const Match = require("../models/matchModel");
 
+// =====================================================
 // SPORTS
+// =====================================================
 
 const SPORT_IDS = [4, 1, 2];
 
 // 4 = Cricket
 // 1 = Tennis
 // 2 = Soccer
-
-
-// =====================================================
-// GET TEAM NAME
-// =====================================================
-
-const getTeamName = (runner) => {
-  if (!runner) {
-    return null;
-  }
-
-  if (typeof runner === "string") {
-    return runner.trim() || null;
-  }
-
-  return (
-    runner.name ||
-    runner.runnerName ||
-    runner.teamName ||
-    runner.selectionName ||
-    runner.runner?.name ||
-    runner.runner?.runnerName ||
-    runner.selection?.name ||
-    null
-  );
-};
-
-
-// =====================================================
-// GET HOME / AWAY TEAM
-// =====================================================
-
-const getHomeAwayTeams = (matchRunners, eventName) => {
-  let homeTeam = null;
-  let awayTeam = null;
-
-  // -----------------------------------------------------
-  // First try matchRunners
-  // -----------------------------------------------------
-
-  if (
-    Array.isArray(matchRunners) &&
-    matchRunners.length >= 2
-  ) {
-    homeTeam = getTeamName(matchRunners[0]);
-    awayTeam = getTeamName(matchRunners[1]);
-  }
-
-  // -----------------------------------------------------
-  // Fallback eventName
-  // -----------------------------------------------------
-
-  if (
-    (!homeTeam || !awayTeam) &&
-    eventName
-  ) {
-    const name = String(eventName).trim();
-
-    const separators = [
-      " v ",
-      " V ",
-      " vs ",
-      " VS ",
-      " - ",
-    ];
-
-    for (const separator of separators) {
-      if (name.includes(separator)) {
-        const parts = name.split(separator);
-
-        if (parts.length >= 2) {
-          if (!homeTeam) {
-            homeTeam = parts[0].trim();
-          }
-
-          if (!awayTeam) {
-            awayTeam = parts
-              .slice(1)
-              .join(separator)
-              .trim();
-          }
-
-          break;
-        }
-      }
-    }
-  }
-
-  return {
-    homeTeam: homeTeam || null,
-    awayTeam: awayTeam || null,
-  };
-};
 
 
 // =====================================================
@@ -143,6 +52,7 @@ const fetchMatchesBySport = async (sportId) => {
       `\n🔄 Fetching matches for sportId=${sportId}`
     );
 
+
     // =================================================
     // CREATE URL
     // =================================================
@@ -158,6 +68,7 @@ const fetchMatchesBySport = async (sportId) => {
       `🌐 API URL: ${url.toString()}`
     );
 
+
     // =================================================
     // API CALL
     // =================================================
@@ -168,6 +79,7 @@ const fetchMatchesBySport = async (sportId) => {
         timeout: 30000,
       }
     );
+
 
     // =================================================
     // GET MATCH ARRAY
@@ -183,6 +95,7 @@ const fetchMatchesBySport = async (sportId) => {
       `📦 sportId=${sportId} matches received: ${matches.length}`
     );
 
+
     // =================================================
     // SAFETY
     // =================================================
@@ -194,6 +107,7 @@ const fetchMatchesBySport = async (sportId) => {
 
       return;
     }
+
 
     // =================================================
     // VALID MATCHES
@@ -216,6 +130,7 @@ const fetchMatchesBySport = async (sportId) => {
       `🔎 sportId=${sportId} valid event IDs: ${eventIds.length}`
     );
 
+
     if (!eventIds.length) {
       console.log(
         `⚠️ No valid event IDs for sportId=${sportId}`
@@ -223,6 +138,7 @@ const fetchMatchesBySport = async (sportId) => {
 
       return;
     }
+
 
     // =================================================
     // FIND EXISTING MATCHES
@@ -243,6 +159,7 @@ const fetchMatchesBySport = async (sportId) => {
         }
       ).lean();
 
+
     const existingEventIds =
       new Set(
         existingMatches.map(
@@ -251,9 +168,11 @@ const fetchMatchesBySport = async (sportId) => {
         )
       );
 
+
     console.log(
       `📌 sportId=${sportId} existing matches: ${existingEventIds.size}`
     );
+
 
     // =================================================
     // RESTORE OLD MATCHES
@@ -277,6 +196,7 @@ const fetchMatchesBySport = async (sportId) => {
         }
       );
 
+
     if (
       activeResult.modifiedCount > 0
     ) {
@@ -284,6 +204,7 @@ const fetchMatchesBySport = async (sportId) => {
         `🟢 sportId=${sportId} restored old matches: ${activeResult.modifiedCount}`
       );
     }
+
 
     // =================================================
     // MARK MISSING MATCHES AS OLD
@@ -308,6 +229,7 @@ const fetchMatchesBySport = async (sportId) => {
         }
       );
 
+
     if (
       oldResult.modifiedCount > 0
     ) {
@@ -315,6 +237,7 @@ const fetchMatchesBySport = async (sportId) => {
         `📦 sportId=${sportId} marked old: ${oldResult.modifiedCount}`
       );
     }
+
 
     // =================================================
     // NEW MATCHES
@@ -328,9 +251,11 @@ const fetchMatchesBySport = async (sportId) => {
           )
       );
 
+
     console.log(
       `🆕 sportId=${sportId} new matches: ${newMatches.length}`
     );
+
 
     // =================================================
     // PREPARE NEW MATCHES
@@ -339,14 +264,6 @@ const fetchMatchesBySport = async (sportId) => {
 
     const addNewMatch =
       newMatches.map((dt) => {
-        const {
-          homeTeam,
-          awayTeam,
-        } = getHomeAwayTeams(
-          dt.matchRunners,
-          dt.eventName
-        );
-
         return {
           eventId:
             String(dt.eventId).trim(),
@@ -393,10 +310,6 @@ const fetchMatchesBySport = async (sportId) => {
 
           isOld: false,
 
-          homeTeam,
-
-          awayTeam,
-
           inning_info:
             dt.inning_info || null,
 
@@ -409,6 +322,7 @@ const fetchMatchesBySport = async (sportId) => {
             dt.match_ka_type || null,
         };
       });
+
 
     // =================================================
     // INSERT NEW MATCHES
@@ -427,17 +341,20 @@ const fetchMatchesBySport = async (sportId) => {
         console.log(
           `✅ sportId=${sportId}: ${insertedMatches.length} matches inserted`
         );
+
       } catch (insertError) {
         console.error(
           `❌ sportId=${sportId} insert error:`,
           insertError.message
         );
       }
+
     } else {
       console.log(
         `ℹ️ sportId=${sportId}: no new matches to insert`
       );
     }
+
 
     // =================================================
     // UPDATE EXISTING MATCHES
@@ -451,13 +368,6 @@ const fetchMatchesBySport = async (sportId) => {
           )
         )
         .map((dt) => {
-          const {
-            homeTeam,
-            awayTeam,
-          } = getHomeAwayTeams(
-            dt.matchRunners,
-            dt.eventName
-          );
 
           return {
             updateOne: {
@@ -514,10 +424,6 @@ const fetchMatchesBySport = async (sportId) => {
 
                   isOld: false,
 
-                  homeTeam,
-
-                  awayTeam,
-
                   inning_info:
                     dt.inning_info || null,
 
@@ -536,6 +442,7 @@ const fetchMatchesBySport = async (sportId) => {
           };
         });
 
+
     // =================================================
     // BULK UPDATE
     // =================================================
@@ -552,23 +459,28 @@ const fetchMatchesBySport = async (sportId) => {
       console.log(
         `🔄 sportId=${sportId}: ${updateResult.modifiedCount} matches updated`
       );
+
     } else {
       console.log(
         `ℹ️ sportId=${sportId}: no existing matches to update`
       );
     }
 
+
     console.log(
       `✅ sportId=${sportId} sync completed`
     );
 
   } catch (error) {
+
     console.error(
       `❌ sportId=${sportId} scheduler failed:`,
       error.message
     );
 
+
     if (error.response) {
+
       console.error(
         "HTTP Status:",
         error.response.status
@@ -584,6 +496,7 @@ const fetchMatchesBySport = async (sportId) => {
       );
     }
 
+
     if (
       error.code === "ECONNABORTED"
     ) {
@@ -591,6 +504,7 @@ const fetchMatchesBySport = async (sportId) => {
         `⏰ sportId=${sportId} API request timed out`
       );
     }
+
 
     if (
       error.code === "ECONNREFUSED"
@@ -608,6 +522,7 @@ const fetchMatchesBySport = async (sportId) => {
 // =====================================================
 
 const fetchMatches = async () => {
+
   console.log(
     "\n=========================================="
   );
@@ -620,6 +535,7 @@ const fetchMatches = async () => {
     "=========================================="
   );
 
+
   // 4 = Cricket
   // 1 = Tennis
   // 2 = Soccer
@@ -627,6 +543,7 @@ const fetchMatches = async () => {
   for (const sportId of SPORT_IDS) {
     await fetchMatchesBySport(sportId);
   }
+
 
   console.log(
     "\n=========================================="
@@ -647,8 +564,10 @@ const fetchMatches = async () => {
 // =====================================================
 
 const startMatchScheduler = () => {
+
   const apiUrl =
     process.env.MAIN_REDIS_MATCHES_API;
+
 
   if (!apiUrl) {
     console.error(
@@ -657,6 +576,7 @@ const startMatchScheduler = () => {
 
     return;
   }
+
 
   // =================================================
   // INITIAL FETCH
@@ -668,6 +588,7 @@ const startMatchScheduler = () => {
 
   fetchMatches();
 
+
   // =================================================
   // EVERY 10 MINUTES
   // =================================================
@@ -675,6 +596,7 @@ const startMatchScheduler = () => {
   cron.schedule(
     "*/10 * * * *",
     async () => {
+
       console.log(
         "⏰ 10 minute scheduler triggered"
       );
@@ -682,6 +604,7 @@ const startMatchScheduler = () => {
       await fetchMatches();
     }
   );
+
 
   console.log(
     "✅ Match scheduler started"
