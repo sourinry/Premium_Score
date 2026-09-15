@@ -1,12 +1,22 @@
 import { Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { Sidebar } from './shared/sidebar/sidebar';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  standalone: true,
+  imports: [
+    RouterOutlet,
+    Sidebar
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
-  protected readonly title = signal('premium-score-frontend');
+
+  sidebarCollapsed = signal(false);
+
+  onSidebarToggle(collapsed: boolean): void {
+    this.sidebarCollapsed.set(collapsed);
+  }
 }

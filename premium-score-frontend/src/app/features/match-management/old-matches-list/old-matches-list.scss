@@ -295,7 +295,7 @@
    LIVE INDICATOR
 ================================================ */
 
-.live-indicator {
+.old-indicator {
   display: flex;
 
   align-items: center;
@@ -306,20 +306,20 @@
 
   font-weight: 600;
 
-  color: #16a34a;
+  color: #d04120;
 }
 
-.live-indicator span {
+.old-indicator span {
   width: 7px;
 
   height: 7px;
 
   border-radius: 50%;
 
-  background: #22c55e;
+  background: #f30404;
 
   box-shadow:
-    0 0 0 4px rgba(34, 197, 94, 0.12);
+    0 0 0 4px rgba(197, 99, 34, 0.12);
 }
 
 

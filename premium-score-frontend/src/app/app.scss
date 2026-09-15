@@ -1,0 +1,46 @@
+.app-container {
+  min-height: 100vh;
+}
+
+
+/* ========================================= */
+/* MAIN CONTENT */
+/* ========================================= */
+
+.main-content {
+  margin-left: 250px;
+
+  min-height: 100vh;
+
+  padding: 20px;
+
+  background-color: #f8f9fa;
+
+  transition: margin-left 0.3s ease;
+}
+
+
+/* ========================================= */
+/* COLLAPSED SIDEBAR */
+/* ========================================= */
+
+.main-content.sidebar-collapsed {
+  margin-left: 70px;
+}
+
+
+/* ========================================= */
+/* RESPONSIVE */
+/* ========================================= */
+
+@media (max-width: 768px) {
+
+  .main-content {
+    margin-left: 220px;
+  }
+
+  .main-content.sidebar-collapsed {
+    margin-left: 65px;
+  }
+
+}

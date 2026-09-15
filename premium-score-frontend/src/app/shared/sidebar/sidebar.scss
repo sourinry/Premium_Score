@@ -1,0 +1,328 @@
+/* ========================================= */
+/* SIDEBAR */
+/* ========================================= */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 250px;
+  height: 100vh;
+
+  background-color: #212529;
+  color: #fff;
+
+  display: flex;
+  flex-direction: column;
+
+  transition: width 0.3s ease;
+
+  z-index: 1050;
+
+  /* Important */
+  overflow: visible;
+}
+
+
+/* ========================================= */
+/* COLLAPSED SIDEBAR */
+/* ========================================= */
+
+.sidebar.collapsed {
+  width: 70px;
+}
+
+
+/* ========================================= */
+/* HEADER */
+/* ========================================= */
+
+.sidebar-header {
+  height: 65px;
+  min-height: 65px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 15px;
+
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+
+  position: relative;
+}
+
+
+/* ========================================= */
+/* LOGO */
+/* ========================================= */
+
+.logo {
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  font-size: 18px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.logo i {
+  font-size: 22px;
+  min-width: 22px;
+}
+
+
+/* ========================================= */
+/* TOGGLE BUTTON */
+/* ========================================= */
+
+.toggle-btn {
+  border: none;
+
+  background: transparent;
+
+  color: #fff;
+
+  cursor: pointer;
+
+  width: 30px;
+  height: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 5px;
+
+  text-decoration: none;
+
+  transition: background-color 0.2s ease;
+}
+
+.toggle-btn:hover {
+  background-color: #343a40;
+}
+
+.toggle-btn:focus {
+  box-shadow: none;
+}
+
+
+/* ========================================= */
+/* COLLAPSED HEADER */
+/* ========================================= */
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+}
+
+
+/* ========================================= */
+/* IMPORTANT: COLLAPSED TOGGLE */
+/* ========================================= */
+
+.sidebar.collapsed .toggle-btn {
+
+  position: fixed;
+
+  left: 70px;
+  top: 15px;
+
+  width: 35px;
+  height: 35px;
+
+  background-color: #212529;
+
+  color: #fff;
+
+  border-radius: 0 5px 5px 0;
+
+  z-index: 2000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* Hover on collapsed toggle */
+
+.sidebar.collapsed .toggle-btn:hover {
+  background-color: #343a40;
+}
+
+
+/* ========================================= */
+/* SIDEBAR MENU */
+/* ========================================= */
+
+.sidebar-menu {
+  flex: 1;
+
+  padding: 15px 10px;
+}
+
+
+/* ========================================= */
+/* SIDEBAR LINKS */
+/* ========================================= */
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  height: 46px;
+
+  padding: 10px 15px;
+
+  margin-bottom: 6px;
+
+  color: #adb5bd;
+
+  border-radius: 6px;
+
+  text-decoration: none;
+
+  white-space: nowrap;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+
+/* Hover */
+
+.sidebar-link:hover {
+  background-color: #343a40;
+
+  color: #fff;
+}
+
+
+/* Active */
+
+.sidebar-link.active {
+  background-color: #0d6efd;
+
+  color: #fff;
+}
+
+
+/* ========================================= */
+/* ICON */
+/* ========================================= */
+
+.sidebar-icon {
+  width: 20px;
+  min-width: 20px;
+
+  text-align: center;
+
+  font-size: 18px;
+}
+
+
+/* ========================================= */
+/* COLLAPSED LINKS */
+/* ========================================= */
+
+.sidebar.collapsed .sidebar-link {
+
+  justify-content: center;
+
+  padding-left: 0;
+  padding-right: 0;
+}
+
+
+.sidebar.collapsed .sidebar-icon {
+  margin: 0 !important;
+}
+
+
+/* ========================================= */
+/* FOOTER */
+/* ========================================= */
+
+.sidebar-footer {
+  padding: 12px;
+
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+
+/* ========================================= */
+/* ADMIN PROFILE */
+/* ========================================= */
+
+.admin-profile {
+
+  display: flex;
+  align-items: center;
+
+  gap: 13px;
+
+  padding: 10px;
+
+  color: #adb5bd;
+
+  white-space: nowrap;
+
+  border-radius: 6px;
+}
+
+.admin-profile:hover {
+  background-color: #343a40;
+
+  color: #fff;
+}
+
+
+.admin-profile i {
+  font-size: 20px;
+
+  min-width: 20px;
+
+  text-align: center;
+}
+
+
+/* ========================================= */
+/* COLLAPSED FOOTER */
+/* ========================================= */
+
+.sidebar.collapsed .admin-profile {
+
+  justify-content: center;
+
+  padding-left: 0;
+  padding-right: 0;
+}
+
+
+/* ========================================= */
+/* RESPONSIVE */
+/* ========================================= */
+
+@media (max-width: 768px) {
+
+  .sidebar {
+    width: 220px;
+  }
+
+  .sidebar.collapsed {
+    width: 65px;
+  }
+
+  .sidebar.collapsed .toggle-btn {
+    left: 65px;
+  }
+
+}
