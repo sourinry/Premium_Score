@@ -7,9 +7,7 @@ const {
 } = require("./matchRedis.service");
 
 
-// =====================================================
 // FANCY API URLs
-// =====================================================
 
 const FANCY_API = {
   4: "https://cricket2.premiumsoccer.in/api/fancy/getPFancy",
@@ -18,18 +16,14 @@ const FANCY_API = {
 };
 
 
-// =====================================================
 // GET FANCY API BY SPORT
-// =====================================================
 
 const getFancyApi = (sportId) => {
   return FANCY_API[Number(sportId)] || null;
 };
 
 
-// =====================================================
 // FETCH FANCY FOR ONE MATCH
-// =====================================================
 
 const fetchFancyForMatch = async (match) => {
   try {
@@ -39,9 +33,7 @@ const fetchFancyForMatch = async (match) => {
     const sportId =
       Number(match.sportId);
 
-    // -------------------------------------------------
     // SPORT CHECK
-    // -------------------------------------------------
 
     if (!FANCY_API[sportId]) {
       console.log(
@@ -51,9 +43,7 @@ const fetchFancyForMatch = async (match) => {
       return;
     }
 
-    // -------------------------------------------------
     // API URL
-    // -------------------------------------------------
 
     const url =
       `${FANCY_API[sportId]}?eventId=${eventId}`;
@@ -62,9 +52,7 @@ const fetchFancyForMatch = async (match) => {
       `🎰 Fetching fancy | eventId=${eventId} | sportId=${sportId}`
     );
 
-    // -------------------------------------------------
     // API CALL
-    // -------------------------------------------------
 
     const response =
       await axios.get(url, {
@@ -76,9 +64,7 @@ const fetchFancyForMatch = async (match) => {
         timeout: 30000,
       });
 
-    // -------------------------------------------------
     // SPORTS BOOK MARKET CHECK
-    // -------------------------------------------------
 
     const sportsBookMarket =
       response?.data?.data?.sportsBookMarket;
@@ -93,9 +79,7 @@ const fetchFancyForMatch = async (match) => {
       return;
     }
 
-    // -------------------------------------------------
-    // GET FANCY ARRAY
-    // -------------------------------------------------
+  // GET FANCY ARRAY
 
     let fancyData = [];
 
@@ -123,9 +107,7 @@ const fetchFancyForMatch = async (match) => {
           .sportsBookMarket;
     }
 
-    // -------------------------------------------------
     // IF DIRECT OBJECT
-    // -------------------------------------------------
 
     if (
       !Array.isArray(fancyData) &&
@@ -145,9 +127,7 @@ const fetchFancyForMatch = async (match) => {
       return;
     }
 
-    // -------------------------------------------------
     // ONLY sportsBookSelection != null
-    // -------------------------------------------------
 
     const validFancy =
       fancyData.filter(
@@ -164,9 +144,7 @@ const fetchFancyForMatch = async (match) => {
       return;
     }
 
-    // -------------------------------------------------
     // EXISTING FANCY IDS
-    // -------------------------------------------------
 
     const ids =
       validFancy
@@ -202,9 +180,7 @@ const fetchFancyForMatch = async (match) => {
         )
       );
 
-    // -------------------------------------------------
     // NEW FANCY
-    // -------------------------------------------------
 
     const notExists =
       validFancy.filter(
@@ -218,9 +194,7 @@ const fetchFancyForMatch = async (match) => {
       `🆕 New fancy records | eventId=${eventId}: ${notExists.length}`
     );
 
-    // -------------------------------------------------
     // INSERT
-    // -------------------------------------------------
 
     const addNewFancy =
       notExists.map((dt) => ({
@@ -291,9 +265,7 @@ const fetchFancyForMatch = async (match) => {
 };
 
 
-// =====================================================
 // PROCESS FANCY FROM REDIS
-// =====================================================
 
 const processFancyFromRedis = async () => {
   try {
@@ -309,9 +281,7 @@ const processFancyFromRedis = async () => {
       "=========================================="
     );
 
-    // -------------------------------------------------
     // GET MATCHES FROM REDIS
-    // -------------------------------------------------
 
     const matches =
       await getMatchesFromRedis();

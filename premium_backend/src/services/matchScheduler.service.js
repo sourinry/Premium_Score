@@ -3,9 +3,7 @@ const cron = require("node-cron");
 
 const Match = require("../models/matchModel");
 
-// =====================================================
 // SPORTS
-// =====================================================
 
 const SPORT_IDS = [4, 1, 2];
 

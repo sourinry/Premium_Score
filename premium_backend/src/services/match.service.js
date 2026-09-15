@@ -1,15 +1,8 @@
-
 const Match = require("../models/matchModel");
 
 const getMatches = async (filters = {}) => {
   try {
-    const {
-      sportId,
-      isResult,
-      matchType,
-      search,
-      limit = 100,
-    } = filters;
+    const { sportId, isResult, matchType, search, limit = 100 } = filters;
 
     const query = {
       isOld: false,
@@ -22,8 +15,7 @@ const getMatches = async (filters = {}) => {
 
     // Result filter
     if (isResult !== undefined && isResult !== null && isResult !== "") {
-      query.isResult =
-        String(isResult).toLowerCase() === "true";
+      query.isResult = String(isResult).toLowerCase() === "true";
     }
 
     // Match type filter
@@ -68,10 +60,7 @@ const getMatches = async (filters = {}) => {
     }
 
     // Maximum 100
-    const currentLimit = Math.min(
-      Math.max(parseInt(limit, 10) || 100, 1),
-      100
-    );
+    const currentLimit = Math.min(Math.max(parseInt(limit, 10) || 100, 1), 100);
 
     const [matches, total] = await Promise.all([
       Match.find(query)
@@ -94,8 +83,6 @@ const getMatches = async (filters = {}) => {
     throw error;
   }
 };
-
-
 
 const getOldMatches = async (filters = {}) => {
   try {
