@@ -30,11 +30,21 @@ const getScoreRedisKey = (eventId, sportId) => {
 // SCORE API CONCURRENCY
 // =====================================================
 
-// Ek time par itni hi getScore APIs chalengi.
 const SCORE_CONCURRENCY = 5;
 
-// Supported sports
+// =====================================================
+// SUPPORTED SPORTS
+// =====================================================
+
 const SUPPORTED_SPORT_IDS = [1, 2, 4];
+
+// =====================================================
+// SCORE ID UPDATE INTERVAL
+// =====================================================
+
+// Har 10 seconds me getAllScoreId API call hogi
+// aur DB me scoreId = "0" wale matches update honge.
+const SCORE_ID_UPDATE_INTERVAL = 10 * 1000;
 
 // =====================================================
 // STEP 1
@@ -247,8 +257,8 @@ const updateMissingScoreIds = async (
         {
           _id: dbMatch._id,
 
-          // Safety:
-          // sirf wahi update karo jiska scoreId abhi 0 hai
+          // Sirf wahi update hoga
+          // jiska scoreId abhi 0 hai
           scoreId: "0",
         },
         {
@@ -274,16 +284,17 @@ const updateMissingScoreIds = async (
       );
 
       // =================================================
-      // IMPORTANT
-      // Redis ke current match object ko bhi update karo
+      // UPDATE CURRENT REDIS MATCH OBJECT
       // =================================================
 
       const redisMatch = matches.find(
         (match) =>
-          String(match?.eventId || "").trim() ===
-            eventId &&
-          Number(match?.sportId) ===
-            sportId
+          String(
+            match?.eventId || ""
+          ).trim() === eventId &&
+          Number(
+            match?.sportId
+          ) === sportId
       );
 
       if (redisMatch) {
@@ -705,6 +716,128 @@ const processScoreWithConcurrency =
   };
 
 // =====================================================
+// 10 SECOND SCORE ID SYNC
+// =====================================================
+
+let scoreIdSyncRunning = false;
+
+const runScoreIdSync = async () => {
+
+  // Agar previous cycle abhi chal raha hai
+  // to duplicate API call mat karo.
+  if (scoreIdSyncRunning) {
+
+    console.log(
+      "⏳ Previous scoreId sync is still running, skipping this cycle"
+    );
+
+    return;
+  }
+
+  scoreIdSyncRunning = true;
+
+  try {
+
+    console.log(
+      "\n=============================================="
+    );
+
+    console.log(
+      "⚡ 10 SECOND SCORE ID SYNC"
+    );
+
+    console.log(
+      "=============================================="
+    );
+
+    // =================================================
+    // GET ALL SCORE IDS
+    // =================================================
+
+    const scoreIdMap =
+      await getAllScoreIds();
+
+    if (
+      !scoreIdMap ||
+      scoreIdMap.size === 0
+    ) {
+
+      console.log(
+        "⚠️ No scoreIds received from getAllScoreId"
+      );
+
+      return;
+    }
+
+    // =================================================
+    // GET CURRENT REDIS MATCHES
+    // =================================================
+
+    const matches =
+      await getMatchesFromRedis();
+
+    if (
+      !Array.isArray(matches)
+    ) {
+
+      console.log(
+        "⚠️ Redis matches not available"
+      );
+
+      return;
+    }
+
+    // =================================================
+    // UPDATE DB
+    // =================================================
+
+    await updateMissingScoreIds(
+      matches,
+      scoreIdMap
+    );
+
+  } catch (error) {
+
+    console.error(
+      "❌ 10 second scoreId sync error:",
+      error.message
+    );
+
+  } finally {
+
+    scoreIdSyncRunning = false;
+  }
+};
+
+// =====================================================
+// START 10 SECOND SCORE ID SYNC
+// =====================================================
+
+const startScoreIdSync = () => {
+
+  console.log(
+    "🚀 Starting scoreId sync..."
+  );
+
+  // Server start hote hi ek baar
+  runScoreIdSync();
+
+  // Har 10 seconds
+  setInterval(
+    runScoreIdSync,
+    SCORE_ID_UPDATE_INTERVAL
+  );
+
+  console.log(
+    "✅ scoreId sync started"
+  );
+
+  console.log(
+    "⏰ getAllScoreId → MongoDB update every 10 seconds"
+  );
+};
+
+// =====================================================
 // PROCESS ALL MATCHES FROM REDIS
 // =====================================================
 
@@ -753,7 +886,6 @@ const processScoresFromRedis =
       // =================================================
       // STEP 1
       // getAllScoreId
-      // ONLY ONE API CALL
       // =================================================
 
       const scoreIdMap =
@@ -840,4 +972,6 @@ module.exports = {
   updateMissingScoreIds,
   fetchActualScore,
   processScoresFromRedis,
+  runScoreIdSync,
+  startScoreIdSync,
 };

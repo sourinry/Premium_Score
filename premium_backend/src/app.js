@@ -11,6 +11,10 @@ const {
   startPremiumScheduler,
 } = require("./services/premiumScheduler.service");
 
+const {
+  startScoreIdSync,
+} = require("./services/matchScore.service");
+
 const app = express();
 
 
@@ -44,6 +48,13 @@ startPremiumScheduler();
 
 
 // =====================================================
+// SCORE ID SYNC
+// =====================================================
+
+startScoreIdSync();
+
+
+// =====================================================
 // HEALTH
 // =====================================================
 
@@ -64,7 +75,6 @@ app.use(
   "/api/v1",
   routes
 );
-
 
 
 app.use((req, res) => {
