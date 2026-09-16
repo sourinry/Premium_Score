@@ -1,29 +1,52 @@
 const Match = require("../models/matchModel");
 
+
 const getMatches = async (filters = {}) => {
   try {
-    const { sportId, isResult, matchType, search, limit = 100 } = filters;
+    const {
+      sportId,
+      isResult,
+      matchType,
+      search,
+      page = 1,
+      limit = 10,
+    } = filters;
 
     const query = {
       isOld: false,
     };
 
-    // Sport filter
-    if (sportId !== undefined && sportId !== null && sportId !== "") {
+
+    if (
+      sportId !== undefined &&
+      sportId !== null &&
+      sportId !== ""
+    ) {
       query.sportId = Number(sportId);
     }
 
-    // Result filter
-    if (isResult !== undefined && isResult !== null && isResult !== "") {
-      query.isResult = String(isResult).toLowerCase() === "true";
+ 
+    if (
+      isResult !== undefined &&
+      isResult !== null &&
+      isResult !== ""
+    ) {
+      query.isResult =
+        String(isResult).toLowerCase() === "true";
     }
 
-    // Match type filter
-    if (matchType !== undefined && matchType !== null && matchType !== "") {
+  
+
+    if (
+      matchType !== undefined &&
+      matchType !== null &&
+      matchType !== ""
+    ) {
       query.matchType = matchType;
     }
 
-    // Search filter
+  
+
     if (
       search !== undefined &&
       search !== null &&
@@ -59,29 +82,58 @@ const getMatches = async (filters = {}) => {
       ];
     }
 
-    // Maximum 100
-    const currentLimit = Math.min(Math.max(parseInt(limit, 10) || 100, 1), 100);
+  
+
+    const currentPage = Math.max(
+      parseInt(page, 10) || 1,
+      1
+    );
+
+    const currentLimit = Math.min(
+      Math.max(parseInt(limit, 10) || 10, 1),
+      100
+    );
+
+    const skip = (currentPage - 1) * currentLimit;
 
     const [matches, total] = await Promise.all([
       Match.find(query)
         .sort({
           openDate: 1,
         })
+        .skip(skip)
         .limit(currentLimit)
         .lean(),
 
       Match.countDocuments(query),
     ]);
 
+ 
+
+    const totalPages = Math.ceil(
+      total / currentLimit
+    );
+
     return {
       matches,
       total,
+      page: currentPage,
       limit: currentLimit,
+      totalPages,
     };
+
   } catch (error) {
-    console.error("❌ Match service getMatches error:", error);
+    console.error(
+      "❌ Match service getMatches error:",
+      error
+    );
+
     throw error;
   }
+};
+
+module.exports = {
+  getMatches,
 };
 
 const getOldMatches = async (filters = {}) => {
