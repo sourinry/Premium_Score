@@ -31,6 +31,7 @@ const getMatchesFromRedis = async () => {
   try {
     const data = await redisClient.get(MATCH_REDIS_KEY);
 
+
     if (!data) {
       console.log("⚠️ No matches found in Redis");
 
@@ -38,7 +39,8 @@ const getMatchesFromRedis = async () => {
     }
 
     const matches = JSON.parse(data);
-    console.log(`📦 ${matches.length} matches loaded from Redis`);
+
+    console.log(`📦MATCH TREDISSSSSSSS ${matches.length} matches loaded from Redis`);
     return matches;
   } catch (error) {
     console.error("❌ getMatchesFromRedis error:", error.message);

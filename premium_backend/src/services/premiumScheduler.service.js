@@ -12,6 +12,13 @@ const {
   processFancyFromRedis,
 } = require("./fancy.service");
 
+const {
+  processFancyResults,
+} = require("./fancyResult.service");
+
+const {
+  processSingleMatchResult,
+} = require("./fancyResult.service");
 
 // COMPLETE PREMIUM SYNC
 
@@ -29,6 +36,9 @@ const runPremiumSync = async () => {
     );
 
     await processScoresFromRedis();
+    processSingleMatchResult("-11209499");
+
+    //  await processFancyResults();
 
 
     // =================================================

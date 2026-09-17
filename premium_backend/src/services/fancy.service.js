@@ -146,16 +146,16 @@ const fetchFancyForMatch = async (match) => {
 
     // EXISTING FANCY IDS
 
-    const ids =
-      validFancy
-        .map(
-          (dt) =>
-            dt.id !== undefined &&
-            dt.id !== null
-              ? String(dt.id)
-              : null
-        )
-        .filter(Boolean);
+    // const ids =
+    //   validFancy
+    //     .map(
+    //       (dt) =>
+    //         dt.id !== undefined &&
+    //         dt.id !== null
+    //           ? String(dt.id)
+    //           : null
+    //     )
+    //     .filter(Boolean);
 
     const existingFancy =
       await Fancy.find(
@@ -163,9 +163,9 @@ const fetchFancyForMatch = async (match) => {
           eventId,
           sportId,
 
-          id: {
-            $in: ids,
-          },
+        //   id: {
+        //     $in: ids,
+        //   },
         },
         {
           id: 1,

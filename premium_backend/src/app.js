@@ -15,6 +15,11 @@ const {
   startScoreIdSync,
 } = require("./services/matchScore.service");
 
+// const {
+//   processFancyResults,
+// } = require("./services/fancyResult.service");
+
+
 const app = express();
 
 
@@ -52,6 +57,8 @@ startPremiumScheduler();
 // =====================================================
 
 startScoreIdSync();
+
+// processFancyResults();
 
 
 // =====================================================
