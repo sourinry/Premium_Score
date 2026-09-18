@@ -162,18 +162,16 @@ const updateHomeAwayTeams = async (eventId, sportId, responseData) => {
     let homeName = null;
     let awayName = null;
 
-    // SOCCER
     if (sportId == 2) {
       homeName = responseData?.result?.match?.teams?.home?.name;
       awayName = responseData?.result?.match?.teams?.away?.name;
     }
 
-    // TENNIS
     else if (sportId == 1) {
       homeName = responseData?.result?.match?.teams?.home?.mediumname;
       awayName = responseData?.result?.match?.teams?.away?.mediumname;
     }
-    // CRICKET
+
     else if (sportId == 4) {
       homeName = responseData?.result?.timeline?.match?.teams?.home?.mediumname;
       awayName = responseData?.result?.timeline?.match?.teams?.away?.mediumname;
@@ -215,7 +213,6 @@ const fetchActualScore = async (match) => {
     const sportId = Number(match?.sportId);
     const scoreId = String(match?.scoreId || "").trim();
 
-    // VALIDATION
 
     if (!eventId) {
       return null;
@@ -225,9 +222,7 @@ const fetchActualScore = async (match) => {
       return null;
     }
 
-    // SCORE ID MUST EXIST
-
-    if (!scoreId || scoreId === "0") {
+    if (!scoreId || scoreId == "0") {
       return null;
     }
 
@@ -261,7 +256,6 @@ const fetchActualScore = async (match) => {
     if (sportId == 4) {
       resp = {
         scorecard: responseData?.result?.scorecard,
-
         timeline: responseData?.result?.timeline,
       };
     }
