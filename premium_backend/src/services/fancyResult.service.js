@@ -127,8 +127,6 @@ const findByName = (fancy, name) => {
 
 const findOverUnder = (fancy, isOver) => {
   return findSelection(fancy, (selection) => {
-    console.log(selection, "ASHSSUSHSHHHSH");
-
     const name = String(
       selection?.selectionName ??
         selection?.name ??
