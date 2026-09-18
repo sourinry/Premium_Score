@@ -3,9 +3,7 @@ const cron = require("node-cron");
 
 const Match = require("../models/matchModel");
 
-// =====================================================
 // SPORTS
-// =====================================================
 
 const SPORT_IDS = [4, 1, 2];
 
@@ -13,10 +11,7 @@ const SPORT_IDS = [4, 1, 2];
 // 1 = Tennis
 // 2 = Soccer
 
-
-// =====================================================
 // GET MATCH TYPE
-// =====================================================
 
 const getMatchType = (match) => {
   if (
@@ -30,512 +25,230 @@ const getMatchType = (match) => {
   return "All";
 };
 
-
-// =====================================================
 // FETCH MATCHES FOR ONE SPORT
-// =====================================================
 
 const fetchMatchesBySport = async (sportId) => {
   try {
-    const apiUrl =
-      process.env.MAIN_REDIS_MATCHES_API;
+    const apiUrl = process.env.MAIN_REDIS_MATCHES_API;
 
     if (!apiUrl) {
-      console.error(
-        "❌ MAIN_REDIS_MATCHES_API is not configured"
-      );
-
       return;
     }
-
-    console.log(
-      `\n🔄 Fetching matches for sportId=${sportId}`
-    );
-
-
-    // =================================================
-    // CREATE URL
-    // =================================================
 
     const url = new URL(apiUrl);
 
-    url.searchParams.set(
-      "sportId",
-      String(sportId)
-    );
+    url.searchParams.set("sportId", String(sportId));
 
-    console.log(
-      `🌐 API URL: ${url.toString()}`
-    );
+    const response = await axios.get(url.toString(), {
+      timeout: 30000,
+    });
 
-
-    // =================================================
-    // API CALL
-    // =================================================
-
-    const response = await axios.get(
-      url.toString(),
-      {
-        timeout: 30000,
-      }
-    );
-
-
-    // =================================================
-    // GET MATCH ARRAY
-    // =================================================
-
-    const matches = Array.isArray(
-      response.data?.result
-    )
+    const matches = Array.isArray(response.data?.result)
       ? response.data.result
       : [];
 
-    console.log(
-      `📦 sportId=${sportId} matches received: ${matches.length}`
-    );
-
-
-    // =================================================
-    // SAFETY
-    // =================================================
-
     if (!matches.length) {
-      console.log(
-        `⚠️ No matches found for sportId=${sportId}`
-      );
-
       return;
     }
 
-
-    // =================================================
     // VALID MATCHES
-    // =================================================
 
     const validMatches = matches.filter(
       (dt) =>
         dt &&
         dt.eventId !== undefined &&
         dt.eventId !== null &&
-        String(dt.eventId).trim() !== ""
+        String(dt.eventId).trim() !== "",
     );
 
-    const eventIds = validMatches.map(
-      (dt) =>
-        String(dt.eventId).trim()
-    );
-
-    console.log(
-      `🔎 sportId=${sportId} valid event IDs: ${eventIds.length}`
-    );
-
+    const eventIds = validMatches.map((dt) => String(dt.eventId).trim());
 
     if (!eventIds.length) {
-      console.log(
-        `⚠️ No valid event IDs for sportId=${sportId}`
-      );
-
       return;
     }
 
-
-    // =================================================
     // FIND EXISTING MATCHES
-    // =================================================
 
-    const existingMatches =
-      await Match.find(
-        {
-          eventId: {
-            $in: eventIds,
-          },
-
-          sportId: sportId,
+    const existingMatches = await Match.find(
+      {
+        eventId: {
+          $in: eventIds,
         },
-        {
-          eventId: 1,
-          sportId: 1,
-        }
-      ).lean();
 
+        sportId: sportId,
+      },
+      {
+        eventId: 1,
+        sportId: 1,
+      },
+    ).lean();
 
-    const existingEventIds =
-      new Set(
-        existingMatches.map(
-          (dt) =>
-            String(dt.eventId)
-        )
-      );
-
-
-    console.log(
-      `📌 sportId=${sportId} existing matches: ${existingEventIds.size}`
+    const existingEventIds = new Set(
+      existingMatches.map((dt) => String(dt.eventId)),
     );
 
-
-    // =================================================
     // RESTORE OLD MATCHES
-    // =================================================
 
-    const activeResult =
-      await Match.updateMany(
-        {
-          eventId: {
-            $in: eventIds,
-          },
-
-          sportId: sportId,
-
-          isOld: true,
+    const activeResult = await Match.updateMany(
+      {
+        eventId: {
+          $in: eventIds,
         },
-        {
-          $set: {
-            isOld: false,
-          },
-        }
-      );
 
+        sportId: sportId,
 
-    if (
-      activeResult.modifiedCount > 0
-    ) {
-      console.log(
-        `🟢 sportId=${sportId} restored old matches: ${activeResult.modifiedCount}`
-      );
+        isOld: true,
+      },
+      {
+        $set: {
+          isOld: false,
+        },
+      },
+    );
+
+    if (activeResult.modifiedCount > 0) {
     }
 
-
-    // =================================================
     // MARK MISSING MATCHES AS OLD
     // ONLY FOR THIS SPORT
-    // =================================================
 
-    const oldResult =
-      await Match.updateMany(
-        {
-          sportId: sportId,
+    const oldResult = await Match.updateMany(
+      {
+        sportId: sportId,
 
-          eventId: {
-            $nin: eventIds,
-          },
-
-          isOld: false,
+        eventId: {
+          $nin: eventIds,
         },
-        {
-          $set: {
-            isOld: true,
-          },
-        }
-      );
 
-
-    if (
-      oldResult.modifiedCount > 0
-    ) {
-      console.log(
-        `📦 sportId=${sportId} marked old: ${oldResult.modifiedCount}`
-      );
-    }
-
-
-    // =================================================
-    // NEW MATCHES
-    // =================================================
-
-    const newMatches =
-      validMatches.filter(
-        (dt) =>
-          !existingEventIds.has(
-            String(dt.eventId).trim()
-          )
-      );
-
-
-    console.log(
-      `🆕 sportId=${sportId} new matches: ${newMatches.length}`
+        isOld: false,
+      },
+      {
+        $set: {
+          isOld: true,
+        },
+      },
     );
 
+    if (oldResult.modifiedCount > 0) {
+    }
 
-    // =================================================
+    // NEW MATCHES
+
+    const newMatches = validMatches.filter(
+      (dt) => !existingEventIds.has(String(dt.eventId).trim()),
+    );
+
     // PREPARE NEW MATCHES
     // EXACTLY ACCORDING TO YOUR SCHEMA
-    // =================================================
 
-    const addNewMatch =
-      newMatches.map((dt) => {
-        return {
-          eventId:
-            String(dt.eventId).trim(),
+    const addNewMatch = newMatches.map((dt) => {
+      return {
+        eventId: String(dt.eventId).trim(),
 
-          marketId:
-            dt.marketId || null,
+        marketId: dt.marketId || null,
 
-          eventName:
-            dt.eventName || null,
+        eventName: dt.eventName || null,
 
-          competitionName:
-            dt.competitionName || null,
+        competitionName: dt.competitionName || null,
 
-          competitionId:
-            dt.competitionId !== undefined &&
-            dt.competitionId !== null
-              ? String(dt.competitionId)
-              : null,
+        competitionId:
+          dt.competitionId !== undefined && dt.competitionId !== null
+            ? String(dt.competitionId)
+            : null,
 
-          // IMPORTANT
-          sportId:
-            dt.sportId !== undefined &&
-            dt.sportId !== null
-              ? Number(dt.sportId)
-              : sportId,
+        // IMPORTANT
+        sportId:
+          dt.sportId !== undefined && dt.sportId !== null
+            ? Number(dt.sportId)
+            : sportId,
 
-          sportName:
-            dt.sportName || null,
+        sportName: dt.sportName || null,
+        openDate: dt.openDate || null,
+        isResult: Boolean(dt.isResult),
+        scoreId: dt.scoreId || null,
+        scoreType: dt.scoreType || null,
+        matchType: getMatchType(dt),
+        isOld: false,
+        inning_info: dt.inning_info || null,
+        matchRuners: Array.isArray(dt.matchRunners) ? dt.matchRunners : [],
+        match_ka_type: dt.match_ka_type || null,
+      };
+    });
 
-          openDate:
-            dt.openDate || null,
-
-          isResult:
-            Boolean(dt.isResult),
-
-          scoreId:
-            dt.scoreId || null,
-
-          scoreType:
-            dt.scoreType || null,
-
-          matchType:
-            getMatchType(dt),
-
-          isOld: false,
-
-          inning_info:
-            dt.inning_info || null,
-
-          matchRuners:
-            Array.isArray(dt.matchRunners)
-              ? dt.matchRunners
-              : [],
-
-          match_ka_type:
-            dt.match_ka_type || null,
-        };
-      });
-
-
-    // =================================================
     // INSERT NEW MATCHES
-    // =================================================
 
     if (addNewMatch.length > 0) {
       try {
-        const insertedMatches =
-          await Match.insertMany(
-            addNewMatch,
-            {
-              ordered: false,
-            }
-          );
-
-        console.log(
-          `✅ sportId=${sportId}: ${insertedMatches.length} matches inserted`
-        );
-
-      } catch (insertError) {
-        console.error(
-          `❌ sportId=${sportId} insert error:`,
-          insertError.message
-        );
-      }
-
+        const insertedMatches = await Match.insertMany(addNewMatch, {
+          ordered: false,
+        });
+      } catch (insertError) {}
     } else {
-      console.log(
-        `ℹ️ sportId=${sportId}: no new matches to insert`
-      );
     }
 
-
-    // =================================================
     // UPDATE EXISTING MATCHES
-    // =================================================
 
-    const updateOperations =
-      validMatches
-        .filter((dt) =>
-          existingEventIds.has(
-            String(dt.eventId).trim()
-          )
-        )
-        .map((dt) => {
+    const updateOperations = validMatches
+      .filter((dt) => existingEventIds.has(String(dt.eventId).trim()))
+      .map((dt) => {
+        return {
+          updateOne: {
+            filter: {
+              eventId: String(dt.eventId).trim(),
 
-          return {
-            updateOne: {
-              filter: {
-                eventId:
-                  String(dt.eventId).trim(),
+              sportId: sportId,
+            },
 
+            update: {
+              $set: {
+                marketId: dt.marketId || null,
+                eventName: dt.eventName || null,
+                competitionName: dt.competitionName || null,
+                competitionId:
+                  dt.competitionId !== undefined && dt.competitionId !== null
+                    ? String(dt.competitionId)
+                    : null,
                 sportId:
-                  sportId,
-              },
+                  dt.sportId !== undefined && dt.sportId !== null
+                    ? Number(dt.sportId)
+                    : sportId,
+                sportName: dt.sportName || null,
+                openDate: dt.openDate || null,
+                isResult: Boolean(dt.isResult),
+                scoreId: dt.scoreId || null,
+                scoreType: dt.scoreType || null,
+                matchType: getMatchType(dt),
+                isOld: false,
+                inning_info: dt.inning_info || null,
+                matchRuners: Array.isArray(dt.matchRunners)
+                  ? dt.matchRunners
+                  : [],
 
-              update: {
-                $set: {
-                  marketId:
-                    dt.marketId || null,
-
-                  eventName:
-                    dt.eventName || null,
-
-                  competitionName:
-                    dt.competitionName || null,
-
-                  competitionId:
-                    dt.competitionId !== undefined &&
-                    dt.competitionId !== null
-                      ? String(
-                          dt.competitionId
-                        )
-                      : null,
-
-                  sportId:
-                    dt.sportId !== undefined &&
-                    dt.sportId !== null
-                      ? Number(dt.sportId)
-                      : sportId,
-
-                  sportName:
-                    dt.sportName || null,
-
-                  openDate:
-                    dt.openDate || null,
-
-                  isResult:
-                    Boolean(dt.isResult),
-
-                  scoreId:
-                    dt.scoreId || null,
-
-                  scoreType:
-                    dt.scoreType || null,
-
-                  matchType:
-                    getMatchType(dt),
-
-                  isOld: false,
-
-                  inning_info:
-                    dt.inning_info || null,
-
-                  matchRuners:
-                    Array.isArray(
-                      dt.matchRunners
-                    )
-                      ? dt.matchRunners
-                      : [],
-
-                  match_ka_type:
-                    dt.match_ka_type || null,
-                },
+                match_ka_type: dt.match_ka_type || null,
               },
             },
-          };
-        });
+          },
+        };
+      });
 
-
-    // =================================================
     // BULK UPDATE
-    // =================================================
 
     if (updateOperations.length > 0) {
-      const updateResult =
-        await Match.bulkWrite(
-          updateOperations,
-          {
-            ordered: false,
-          }
-        );
-
-      console.log(
-        `🔄 sportId=${sportId}: ${updateResult.modifiedCount} matches updated`
-      );
-
+      const updateResult = await Match.bulkWrite(updateOperations, {
+        ordered: false,
+      });
     } else {
-      console.log(
-        `ℹ️ sportId=${sportId}: no existing matches to update`
-      );
     }
-
-
-    console.log(
-      `✅ sportId=${sportId} sync completed`
-    );
-
   } catch (error) {
-
-    console.error(
-      `❌ sportId=${sportId} scheduler failed:`,
-      error.message
-    );
-
-
     if (error.response) {
-
-      console.error(
-        "HTTP Status:",
-        error.response.status
-      );
-
-      console.error(
-        "API Error:",
-        JSON.stringify(
-          error.response.data,
-          null,
-          2
-        )
-      );
-    }
-
-
-    if (
-      error.code === "ECONNABORTED"
-    ) {
-      console.error(
-        `⏰ sportId=${sportId} API request timed out`
-      );
-    }
-
-
-    if (
-      error.code === "ECONNREFUSED"
-    ) {
-      console.error(
-        `🔌 sportId=${sportId} API connection refused`
-      );
+      console.error("API Error:", JSON.stringify(error.response.data, null, 2));
     }
   }
 };
 
-
-// =====================================================
 // FETCH ALL 3 SPORTS
-// =====================================================
 
 const fetchMatches = async () => {
-
-  console.log(
-    "\n=========================================="
-  );
-
-  console.log(
-    "🚀 STARTING ALL SPORTS MATCH SYNC"
-  );
-
-  console.log(
-    "=========================================="
-  );
-
-
   // 4 = Cricket
   // 1 = Tennis
   // 2 = Soccer
@@ -543,82 +256,29 @@ const fetchMatches = async () => {
   for (const sportId of SPORT_IDS) {
     await fetchMatchesBySport(sportId);
   }
-
-
-  console.log(
-    "\n=========================================="
-  );
-
-  console.log(
-    "✅ ALL SPORTS MATCH SYNC COMPLETED"
-  );
-
-  console.log(
-    "==========================================\n"
-  );
 };
 
-
-// =====================================================
 // START SCHEDULER
-// =====================================================
 
 const startMatchScheduler = () => {
-
-  const apiUrl =
-    process.env.MAIN_REDIS_MATCHES_API;
-
+  const apiUrl = process.env.MAIN_REDIS_MATCHES_API;
 
   if (!apiUrl) {
-    console.error(
-      "❌ MAIN_REDIS_MATCHES_API is not configured"
-    );
-
     return;
   }
 
-
-  // =================================================
   // INITIAL FETCH
-  // =================================================
-
-  console.log(
-    "🚀 Running initial match sync..."
-  );
 
   fetchMatches();
 
-
-  // =================================================
   // EVERY 10 MINUTES
-  // =================================================
 
-  cron.schedule(
-    "*/10 * * * *",
-    async () => {
-
-      console.log(
-        "⏰ 10 minute scheduler triggered"
-      );
-
-      await fetchMatches();
-    }
-  );
-
-
-  console.log(
-    "✅ Match scheduler started"
-  );
-
-  console.log(
-    "⏰ Match API will run every 10 minutes"
-  );
+  cron.schedule("*/10 * * * *", async () => {
+    await fetchMatches();
+  });
 };
 
-
-// =====================================================
 // EXPORT
-// =====================================================
 
 module.exports = {
   startMatchScheduler,

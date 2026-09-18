@@ -13,14 +13,9 @@ const saveMatchesToRedis = async () => {
         openDate: 1,
       })
       .lean();
-
     await redisClient.set(MATCH_REDIS_KEY, JSON.stringify(matches));
-    console.log(`✅ ${matches.length} matches saved to Redis`);
-
     return matches;
   } catch (error) {
-    console.error("❌saveMatchesToRedis error:", error.message);
-
     throw error;
   }
 };
@@ -31,19 +26,15 @@ const getMatchesFromRedis = async () => {
   try {
     const data = await redisClient.get(MATCH_REDIS_KEY);
 
-
     if (!data) {
-      console.log("⚠️ No matches found in Redis");
 
       return [];
     }
 
     const matches = JSON.parse(data);
 
-    console.log(`📦MATCH TREDISSSSSSSS ${matches.length} matches loaded from Redis`);
     return matches;
   } catch (error) {
-    console.error("❌ getMatchesFromRedis error:", error.message);
 
     return [];
   }

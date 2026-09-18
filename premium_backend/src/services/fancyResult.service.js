@@ -1,945 +1,1293 @@
-const Fancy = require("../models/fancyModel");
+
 const { getMatchesFromRedis } = require("./matchRedis.service");
-const { fetchActualScore } = require("./matchScore.service");
+const redisClient = require("../config/redis");
+const Fancy = require("../models/fancyModel");
 
-/* =========================================================
-   AFTER MATCH COMPLETED FANCY CODES
-========================================================= */
 
-const AFTER_MATCH_COMPLETED_CODES = [
-  "342",   // Will there be a tie
-  "639",   // Total fours
-  "640",   // Total sixes
-  "647",   // Most fours
-  "648",   // Most sixes
-  "654",   // Total run outs
-  "682",   // Total in highest scoring over
-  "683",   // Top batter
-  "684",   // Top bowler
-  "695",   // Total ducks
-  "698",   // Team with top batter
-  "699",   // Team with top bowler
-  "702",   // Top batter total
-  "710",   // Which team wins coin toss and match
-  "655",   // Total extras
-  "696",   // Total wides
-  "701",   // Any player to score 50 / 100
-  "1131",  // Both teams to score 170
-  "340",   // Winner incl super over
-];
+       
+// GET SCORE REDIS KEY
+       
 
-/* =========================================================
-   GET RESULT MATCHES FROM REDIS
-========================================================= */
-
-const getResultMatchesFromRedis = async () => {
-  try {
-    const matches = await getMatchesFromRedis();
-
-    console.log(`📦SSSSSSSSSSSSSSSSSSSSSSSS Total matches from Redis: ${matches.length}`);
-
-    if (!Array.isArray(matches)) {
-      return [];
-    }
-
-    const resultMatches = matches.filter(
-      (match) =>
-        String(match?.matchType || "").toLowerCase() === "all"
-    );
-console.log(resultMatches,"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
-
- 
-
-    return resultMatches;
-  } catch (error) {
-    console.error(
-      "❌ Error getting result matches from Redis:",
-      error.message
-    );
-
-    return [];
-  }
+const getScoreRedisKey = (eventId, sportId) => {
+  return `score:eventId:${eventId}:sportId:${sportId}`;
 };
 
-/* =========================================================
-   GET FANCY BY EVENT ID
-========================================================= */
 
-const getFancyByEventId = async (eventId) => {
-  try {
-    if (!eventId) {
-      return [];
-    }
+       
+// STRING VALUE
+       
 
-    const fancyList = await Fancy.find({
-      eventId: String(eventId),
-    }).lean();
-
-    return Array.isArray(fancyList) ? fancyList : [];
-  } catch (error) {
-    console.error(
-      `❌ Fancy DB error for eventId ${eventId}:`,
-      error.message
-    );
-
-    return [];
+const toStringValue = (value) => {
+  if (value === undefined || value === null) {
+    return null;
   }
+
+  return String(value);
 };
 
-/* =========================================================
-   GET AFTER MATCH COMPLETED FANCIES
-========================================================= */
 
-const getAfterMatchCompletedFancies = (fancyList = []) => {
-  if (!Array.isArray(fancyList)) {
-    return [];
+       
+// NUMBER VALUE
+       
+
+const toNumber = (value) => {
+  const number = Number(value);
+
+  return Number.isFinite(number) ? number : null;
+};
+
+
+       
+// GET SPECIFIER
+       
+
+const getSpecifier = (fancy) => {
+  const value =
+    fancy?.apiSiteSpecifier ??
+    fancy?.data?.apiSiteSpecifier ??
+    null;
+
+  if (value === undefined || value === null) {
+    return null;
   }
 
-  return fancyList.filter((fancy) => {
-    const fancyCode = String(
-      fancy?.id ??
-      fancy?.apiSiteMarketId ??
-      ""
-    );
+  return String(value).trim();
+};
 
-    return AFTER_MATCH_COMPLETED_CODES.includes(fancyCode);
+
+       
+// GET SELECTIONS
+       
+
+const getSelections = (fancy) => {
+  if (Array.isArray(fancy?.data?.sportsBookSelection)) {
+    return fancy.data.sportsBookSelection;
+  }
+
+  if (Array.isArray(fancy?.sportsBookSelection)) {
+    return fancy.sportsBookSelection;
+  }
+
+  return [];
+};
+
+
+       
+// FIND API SITE SELECTION ID
+       
+
+const findSelection = (fancy, condition) => {
+  const selections = getSelections(fancy);
+
+  const selection = selections.find(condition);
+
+  if (!selection) {
+    return null;
+  }
+
+  return selection?.apiSiteSelectionId != null
+    ? String(selection.apiSiteSelectionId)
+    : null;
+};
+
+
+       
+// FIND BY NAME
+       
+
+const findByName = (fancy, name) => {
+  if (!name) {
+    return null;
+  }
+
+  const target = String(name).trim().toLowerCase();
+
+  return findSelection(fancy, (selection) => {
+    const selectionName = String(
+      selection?.selectionName ??
+        selection?.name ??
+        selection?.apiSiteSelectionName ??
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+    return (
+      selectionName === target ||
+      selectionName.includes(target) ||
+      target.includes(selectionName)
+    );
   });
 };
 
-/* =========================================================
-   GET CRICKET SCORE
-========================================================= */
 
-const getCricketScore = (scoreResponse) => {
-    console.log(scoreResponse.data?.scorecard?.score,"Score Response");
-    
-  return scoreResponse?.data?.scorecard?.score ?? null;
-};
-
-/* =========================================================
-   GET CRICKET INNINGS
-========================================================= */
-
-const getCricketInnings = (scoreResponse) => {
-  const score = getCricketScore(scoreResponse);
-
-  if (!Array.isArray(score?.innings)) {
-    return [];
-  }
-
-  return score.innings;
-};
-
-/* =========================================================
-   342 - WILL THERE BE A TIE
-========================================================= */
-
-const getTieResult = (scoreResponse) => {
-  const innings = getCricketInnings(scoreResponse);
-
-  if (innings.length < 2) {
-    return null;
-  }
-
-  const team1Runs = Number(innings[0]?.runs || 0);
-  const team2Runs = Number(innings[1]?.runs || 0);
-
-  return team1Runs === team2Runs ? "YES" : "NO";
-};
-
-/* =========================================================
-   639 - TOTAL FOURS
-========================================================= */
-
-const getTotalFours = (scoreResponse) => {
-  const innings = getCricketInnings(scoreResponse);
-
-  if (!innings.length) {
-    return null;
-  }
-
-  let totalFours = 0;
-
-  for (const inning of innings) {
-    const batsmen = Array.isArray(inning?.batsmen)
-      ? inning.batsmen
-      : [];
-
-    for (const batsman of batsmen) {
-      totalFours += Number(batsman?.fours || 0);
-    }
-  }
-
-  return totalFours;
-};
-
-/* =========================================================
-   640 - TOTAL SIXES
-========================================================= */
-
-const getTotalSixes = (scoreResponse) => {
-  const innings = getCricketInnings(scoreResponse);
-
-  if (!innings.length) {
-    return null;
-  }
-
-  let totalSixes = 0;
-
-  for (const inning of innings) {
-    const batsmen = Array.isArray(inning?.batsmen)
-      ? inning.batsmen
-      : [];
-
-    for (const batsman of batsmen) {
-      totalSixes += Number(batsman?.sixes || 0);
-    }
-  }
-
-  return totalSixes;
-};
-
-/* =========================================================
-   654 - TOTAL RUN OUTS
-========================================================= */
-
-const getTotalRunOuts = (scoreResponse) => {
-  const innings = getCricketInnings(scoreResponse);
-
-  if (!innings.length) {
-    return null;
-  }
-
-  let totalRunOuts = 0;
-
-  for (const inning of innings) {
-    const batsmen = Array.isArray(inning?.batsmen)
-      ? inning.batsmen
-      : [];
-
-    for (const batsman of batsmen) {
-      const description = String(
-        batsman?.description || ""
-      ).toLowerCase();
-
-      if (description.includes("run out")) {
-        totalRunOuts++;
-      }
-    }
-  }
-
-  return totalRunOuts;
-};
-
-/* =========================================================
-   655 - TOTAL EXTRAS
-========================================================= */
-
-const getTotalExtras = (scoreResponse) => {
-  const innings = getCricketInnings(scoreResponse);
-
-  if (!innings.length) {
-    return null;
-  }
-
-  let totalExtras = 0;
-
-  for (const inning of innings) {
-    const extras = inning?.extrasSummary || {};
-
-    totalExtras += Number(extras?.byes || 0);
-    totalExtras += Number(extras?.noBalls || 0);
-    totalExtras += Number(extras?.legByes || 0);
-    totalExtras += Number(extras?.wides || 0);
-    totalExtras += Number(extras?.penalties || 0);
-  }
-
-  return totalExtras;
-};
-
-/* =========================================================
-   696 - TOTAL WIDES
-========================================================= */
-
-const getTotalWides = (scoreResponse) => {
-  const innings = getCricketInnings(scoreResponse);
-
-  if (!innings.length) {
-    return null;
-  }
-
-  let totalWides = 0;
-
-  for (const inning of innings) {
-    const extras = inning?.extrasSummary || {};
-
-    totalWides += Number(extras?.wides || 0);
-  }
-
-  return totalWides;
-};
-
-/* =========================================================
-   683 - TOP BATTER
-========================================================= */
-
-const getTopBatter = (scoreResponse) => {
-  const innings = getCricketInnings(scoreResponse);
-
-  if (!innings.length) {
-    return null;
-  }
-
-  let topBatter = null;
-  let highestRuns = -1;
-
-  for (const inning of innings) {
-    const batsmen = Array.isArray(inning?.batsmen)
-      ? inning.batsmen
-      : [];
-
-    for (const batsman of batsmen) {
-      const runs = Number(batsman?.runs || 0);
-
-      if (runs > highestRuns) {
-        highestRuns = runs;
-
-        topBatter = {
-          name: batsman?.batsmanName || null,
-          runs,
-          teamName: inning?.teamName || null,
-        };
-      }
-    }
-  }
-
-  return topBatter;
-};
-
-/* =========================================================
-   684 - TOP BOWLER
-========================================================= */
-
-const getTopBowler = (scoreResponse) => {
-  const innings = getCricketInnings(scoreResponse);
-
-  if (!innings.length) {
-    return null;
-  }
-
-  let topBowler = null;
-  let highestWickets = -1;
-
-  for (const inning of innings) {
-    const bowlers = Array.isArray(inning?.bowlers)
-      ? inning.bowlers
-      : [];
-
-    for (const bowler of bowlers) {
-      const wickets = Number(bowler?.wickets || 0);
-
-      if (wickets > highestWickets) {
-        highestWickets = wickets;
-
-        topBowler = {
-          name: bowler?.bowlerName || null,
-          wickets,
-        };
-      }
-    }
-  }
-
-  return topBowler;
-};
-
-/* =========================================================
-   702 - TOP BATTER TOTAL
-========================================================= */
-
-const getTopBatterTotal = (scoreResponse) => {
-  const topBatter = getTopBatter(scoreResponse);
-
-  if (!topBatter) {
-    return null;
-  }
-
-  return topBatter.runs;
-};
-
-/* =========================================================
-   698 - TEAM WITH TOP BATTER
-========================================================= */
-
-const getTeamWithTopBatter = (scoreResponse) => {
-  const topBatter = getTopBatter(scoreResponse);
-
-  if (!topBatter) {
-    return null;
-  }
-
-  return topBatter.teamName;
-};
-
-/* =========================================================
-   699 - TEAM WITH TOP BOWLER
-========================================================= */
-
-const getTeamWithTopBowler = (scoreResponse) => {
-  const innings = getCricketInnings(scoreResponse);
-
-  if (!innings.length) {
-    return null;
-  }
-
-  let topBowler = null;
-  let highestWickets = -1;
-  let topBowlerTeam = null;
-
-  for (const inning of innings) {
-    const bowlers = Array.isArray(inning?.bowlers)
-      ? inning.bowlers
-      : [];
-
-    for (const bowler of bowlers) {
-      const wickets = Number(bowler?.wickets || 0);
-
-      if (wickets > highestWickets) {
-        highestWickets = wickets;
-        topBowler = bowler?.bowlerName || null;
-        topBowlerTeam = inning?.teamName || null;
-      }
-    }
-  }
-
-  if (!topBowler) {
-    return null;
-  }
-
-  return topBowlerTeam;
-};
-
-/* =========================================================
-   695 - TOTAL DUCKS
-========================================================= */
-
-const getTotalDucks = (scoreResponse) => {
-  const innings = getCricketInnings(scoreResponse);
-
-  if (!innings.length) {
-    return null;
-  }
-
-  let totalDucks = 0;
-
-  for (const inning of innings) {
-    const batsmen = Array.isArray(inning?.batsmen)
-      ? inning.batsmen
-      : [];
-
-    for (const batsman of batsmen) {
-      const runs = Number(batsman?.runs || 0);
-
-      if (runs === 0) {
-        totalDucks++;
-      }
-    }
-  }
-
-  return totalDucks;
-};
-
-/* =========================================================
-   682 - TOTAL IN HIGHEST SCORING OVER
-========================================================= */
-
-const getHighestScoringOver = (scoreResponse) => {
-  const score = getCricketScore(scoreResponse);
-
-  const wormAndManhattan = Array.isArray(
-    score?.wormAndManhattan
-  )
-    ? score.wormAndManhattan
-    : [];
-
-  if (!wormAndManhattan.length) {
-    return null;
-  }
-
-  let highestRuns = 0;
-
-  for (const over of wormAndManhattan) {
-    const firstInnings = String(
-      over?.firstInnings || ""
-    );
-
-    const secondInnings = String(
-      over?.secondInnings || ""
-    );
-
-    const firstParts = firstInnings
-      .split(",")
-      .map((value) => Number(value));
-
-    const secondParts = secondInnings
-      .split(",")
-      .map((value) => Number(value));
-
-    const firstRuns = Number(firstParts[0] || 0);
-    const secondRuns = Number(secondParts[0] || 0);
-
-    highestRuns = Math.max(
-      highestRuns,
-      firstRuns,
-      secondRuns
-    );
-  }
-
-  return highestRuns;
-};
-
-/* =========================================================
-   1131 - BOTH TEAMS TO SCORE 170
-========================================================= */
-
-const getBothTeams170 = (scoreResponse) => {
-  const innings = getCricketInnings(scoreResponse);
-
-  if (innings.length < 2) {
-    return null;
-  }
-
-  const team1Runs = Number(innings[0]?.runs || 0);
-  const team2Runs = Number(innings[1]?.runs || 0);
-
-  return team1Runs >= 170 && team2Runs >= 170
-    ? "YES"
-    : "NO";
-};
-
-/* =========================================================
-   CALCULATE FANCY RESULT
-========================================================= */
-
-const calculateFancyResult = (fancy, scoreResponse) => {
-  const fancyCode = String(
-    fancy?.id ??
-    fancy?.apiSiteMarketId ??
-    ""
-  );
-
-  switch (fancyCode) {
-    case "342":
-      return getTieResult(scoreResponse);
-
-    case "639":
-      return getTotalFours(scoreResponse);
-
-    case "640":
-      return getTotalSixes(scoreResponse);
-
-    case "654":
-      return getTotalRunOuts(scoreResponse);
-
-    case "655":
-      return getTotalExtras(scoreResponse);
-
-    case "682":
-      return getHighestScoringOver(scoreResponse);
-
-    case "683":
-      return getTopBatter(scoreResponse);
-
-    case "684":
-      return getTopBowler(scoreResponse);
-
-    case "695":
-      return getTotalDucks(scoreResponse);
-
-    case "696":
-      return getTotalWides(scoreResponse);
-
-    case "698":
-      return getTeamWithTopBatter(scoreResponse);
-
-    case "699":
-      return getTeamWithTopBowler(scoreResponse);
-
-    case "702":
-      return getTopBatterTotal(scoreResponse);
-
-    case "1131":
-      return getBothTeams170(scoreResponse);
-
-    /*
-      These codes are intentionally not calculated yet
-      because the supplied getScore response does not
-      provide enough confirmed information for their
-      exact market semantics.
-    */
-
-    case "647":
-      return null;
-
-    case "648":
-      return null;
-
-    case "701":
-      return null;
-
-    case "710":
-      return null;
-
-    case "340":
-      return null;
-
-    default:
-      return null;
-  }
-};
-
-/* =========================================================
-   PROCESS FANCY RESULT FOR ONE MATCH
-========================================================= */
-
-const processFancyResultForMatch = async (match) => {
-  try {
-    const eventId = String(match?.eventId || "");
-    const sportId = Number(match?.sportId || 0);
-
-    if (!eventId) {
-      console.log("⚠️ Event ID missing");
-      return;
-    }
-
-    if (sportId !== 4) {
-      console.log(
-        `⏭️ Skipping event ${eventId} - sportId ${sportId}`
-      );
-      return;
-    }
-
-    console.log("\n----------------------------------------------");
-    console.log(`🎯 Processing Fancy Result`);
-    console.log(`Event ID   : ${eventId}`);
-    console.log(`Sport ID   : ${sportId}`);
-    console.log(`Match Name : ${match?.eventName || "-"}`);
-    console.log("----------------------------------------------");
-
-    /* =====================================================
-       GET FANCY FROM DB
-    ===================================================== */
-
-    const fancyList = await getFancyByEventId(eventId);
-
-    if (!fancyList.length) {
-      console.log(`ℹ️ No fancy found for event ${eventId}`);
-      return;
-    }
-
-    const afterMatchFancies =
-      getAfterMatchCompletedFancies(fancyList);
-
-    if (!afterMatchFancies.length) {
-      console.log(
-        `ℹ️ No AFTER MATCH COMPLETED fancy found for event ${eventId}`
-      );
-      return;
-    }
-
-    console.log(
-      `📋 After Match Fancies: ${afterMatchFancies.length}`
-    );
-
-    /* =====================================================
-       GET SCORE FROM EXISTING SCORE SERVICE
-    ===================================================== */
-
-    const scoreResponse = await fetchActualScore(match);
-
-    if (!scoreResponse) {
-      console.log(
-        `⚠️ No score response for event ${eventId}`
-      );
-      return;
-    }
-
-    const score = getCricketScore(scoreResponse);
-
-    if (!score) {
-      console.log(
-        `⚠️ Cricket scorecard not available for event ${eventId}`
-      );
-      return;
-    }
-
-    /* =====================================================
-       CALCULATE EACH FANCY
-    ===================================================== */
-
-    for (const fancy of afterMatchFancies) {
-      const fancyCode = String(
-        fancy?.id ??
-        fancy?.apiSiteMarketId ??
+       
+// OVER / UNDER
+       
+
+const findOverUnder = (fancy, isOver) => {
+  return findSelection(fancy, (selection) => {
+    console.log(selection, "ASHSSUSHSHHHSH");
+
+    const name = String(
+      selection?.selectionName ??
+        selection?.name ??
+        selection?.apiSiteSelectionName ??
         ""
-      );
+    )
+      .trim()
+      .toLowerCase();
 
-      const result = calculateFancyResult(
-        fancy,
-        scoreResponse
+    if (isOver) {
+      return (
+        name === "over" ||
+        name.startsWith("over ") ||
+        name.startsWith("over")
       );
-
-      console.log("\n🎯 FANCY RESULT");
-      console.log("Code       :", fancyCode);
-      console.log(
-        "Fancy Name :",
-        fancy?.fancyName || fancy?.data?.marketName || "-"
-      );
-      console.log("Result     :", result);
     }
 
-    console.log(
-      `\n✅ Fancy result processing completed for ${eventId}`
+    return (
+      name === "under" ||
+      name.startsWith("under ") ||
+      name.startsWith("under")
     );
-  } catch (error) {
-    console.error(
-      `❌ Fancy result processing failed for event ${match?.eventId}:`,
-      error.message
-    );
-  }
-};
-
-/* =========================================================
-   PROCESS ALL FANCY RESULTS
-========================================================= */
-
-const processFancyResults = async () => {
-  try {
-    console.log("\n==============================================");
-    console.log("🎯 FANCY RESULT PROCESS STARTED");
-    console.log("==============================================\n");
-
-    const resultMatches =
-      await getResultMatchesFromRedis();
-
-      console.log(`📦 Total matches from Redis: ${resultMatches.length}`);
-
-    if (!resultMatches.length) {
-      console.log("ℹ️ No result matches found");
-      return;
-    }
-
-    console.log(
-      `🎯 Total result matches: ${resultMatches.length}`
-    );
-
-    for (const match of resultMatches) {
-      await processFancyResultForMatch(match);
-    }
-
-    console.log("\n==============================================");
-    console.log("✅ FANCY RESULT PROCESS COMPLETED");
-    console.log("==============================================\n");
-  } catch (error) {
-    console.error(
-      "❌ Fancy result process error:",
-      error.message
-    );
-  }
+  });
 };
 
 
+       
+// YES / NO
+       
+
+const findYesNo = (fancy, yes) => {
+  return findSelection(fancy, (selection) => {
+    const name = String(
+      selection?.selectionName ??
+        selection?.name ??
+        selection?.apiSiteSelectionName ??
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+    if (yes) {
+      return name === "yes";
+    }
+
+    return name === "no";
+  });
+};
+
+
+       
+// TEAM SELECTION
+       
+
+const findTeamSelection = (fancy, teamName) => {
+  if (!teamName) {
+    return null;
+  }
+
+  const target = String(teamName).trim().toLowerCase();
+
+  return findSelection(fancy, (selection) => {
+    const name = String(
+      selection?.selectionName ??
+        selection?.name ??
+        selection?.apiSiteSelectionName ??
+        ""
+    )
+      .trim()
+      .toLowerCase();
+
+    return (
+      name === target ||
+      name.includes(target) ||
+      target.includes(name)
+    );
+  });
+};
+
+
+       
+// PLAYER SELECTION
+       
+
+const findPlayerSelection = (
+  fancy,
+  playerId,
+  playerName = null
+) => {
+  const playerIdString = toStringValue(playerId);
+
+  const selections = getSelections(fancy);
+
+  const selection = selections.find((item) => {
+    const selectionId = toStringValue(
+      item?.apiSiteSelectionId
+    );
+
+    const itemPlayerId = toStringValue(
+      item?.playerId ??
+        item?.apiSitePlayerId ??
+        item?.selectionId
+    );
+
+    if (
+      playerIdString &&
+      (itemPlayerId === playerIdString ||
+        selectionId === playerIdString)
+    ) {
+      return true;
+    }
+
+    if (playerName) {
+      const selectionName = String(
+        item?.selectionName ??
+          item?.name ??
+          item?.apiSiteSelectionName ??
+          ""
+      )
+        .trim()
+        .toLowerCase();
+
+      const targetName = String(playerName)
+        .trim()
+        .toLowerCase();
+
+      if (
+        selectionName === targetName ||
+        selectionName.includes(targetName) ||
+        targetName.includes(selectionName)
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  });
+
+  return selection?.apiSiteSelectionId != null
+    ? String(selection.apiSiteSelectionId)
+    : null;
+};
+
+
+       
+// GET SCORE OBJECT
+       
+
+const getScoreObject = (scoreResponse) => {
+  return scoreResponse?.scorecard?.score ?? null;
+};
+
+
+       
+// GET INNINGS
+       
+
+const getInnings = (scoreResponse) => {
+  const innings = getScoreObject(scoreResponse)?.innings;
+
+  return Array.isArray(innings) ? innings : [];
+};
+
+
+       
+// GET ALL BATSMEN
+       
+
+const getAllBatsmen = (scoreResponse) => {
+  const innings = getInnings(scoreResponse);
+
+  return innings.flatMap((inning) =>
+    Array.isArray(inning?.batsmen)
+      ? inning.batsmen
+      : []
+  );
+};
+
+
+       
+// GET ALL BOWLERS
+       
+
+const getAllBowlers = (scoreResponse) => {
+  const innings = getInnings(scoreResponse);
+
+  return innings.flatMap((inning) =>
+    Array.isArray(inning?.bowlers)
+      ? inning.bowlers
+      : []
+  );
+};
+
+
+       
+// MATCH COMPLETION CHECK
+       
+
+const isMatchCompleted = (scoreResponse) => {
+  const shortName =
+    scoreResponse?.timeline?.match?.status?.shortName;
+
+  const matchStatus =
+    scoreResponse?.scorecard?.score?.matchStatus;
+
+  return (
+    String(shortName).toUpperCase() === "END" 
+  );
+};
+
+
+       
+// MARKET RESULT CALCULATION
+       
+
+const calculateFancyResult = (
+  fancy,
+  scoreResponse
+) => {
+  const marketId = String(
+    fancy?.apiSiteMarketId ?? ""
+  ).trim();
+
+  if (!marketId) {
+    return null;
+  }
+
+  const score = getScoreObject(scoreResponse);
+
+  if (!score) {
+    return null;
+  }
+
+  const innings = getInnings(scoreResponse);
+  const batsmen = getAllBatsmen(scoreResponse);
+  const bowlers = getAllBowlers(scoreResponse);
+
+  const timelineMatch =
+    scoreResponse?.timeline?.match;
+
+  const resultInfo =
+    timelineMatch?.resultinfo;
+
+  const specifier = getSpecifier(fancy);
+
+
+         
+  // 342 - WILL THERE BE A TIE
+  // Redis directly gives winningteam
+         
+
+  if (marketId === "342") {
+    const winningTeam =
+      resultInfo?.winningteam;
+
+    if (!winningTeam) {
+      return null;
+    }
+
+    const isTie =
+      winningTeam !== "home" &&
+      winningTeam !== "away";
+
+    return findYesNo(
+      fancy,
+      isTie
+    );
+  }
+
+
+         
+  // 682 - HIGHEST SCORING OVER
+         
+
+  if (marketId === "682") {
+    const wormAndManhattan =
+      score?.wormAndManhattan;
+
+    if (
+      !Array.isArray(wormAndManhattan) ||
+      !specifier
+    ) {
+      return null;
+    }
+
+    let specifierData;
+
+    try {
+      specifierData =
+        JSON.parse(specifier);
+    } catch {
+      return null;
+    }
+
+    const target =
+      toNumber(specifierData?.total);
+
+    const maxOvers =
+      toNumber(specifierData?.maxovers);
+
+    if (
+      target === null ||
+      maxOvers === null
+    ) {
+      return null;
+    }
+
+    let highestRuns = -Infinity;
+
+    wormAndManhattan.forEach((item) => {
+      const overNumber =
+        toNumber(item?.overNumber);
+
+      if (
+        overNumber === null ||
+        overNumber > maxOvers
+      ) {
+        return;
+      }
+
+      const firstInnings =
+        String(
+          item?.firstInnings || ""
+        ).split(",");
+
+      const secondInnings =
+        String(
+          item?.secondInnings || ""
+        ).split(",");
+
+      const firstRuns =
+        toNumber(firstInnings[0]);
+
+      const secondRuns =
+        toNumber(secondInnings[0]);
+
+      if (firstRuns !== null) {
+        highestRuns =
+          Math.max(
+            highestRuns,
+            firstRuns
+          );
+      }
+
+      if (secondRuns !== null) {
+        highestRuns =
+          Math.max(
+            highestRuns,
+            secondRuns
+          );
+      }
+    });
+
+    if (highestRuns === -Infinity) {
+      return null;
+    }
+
+    return highestRuns > target
+      ? findOverUnder(fancy, true)
+      : findOverUnder(fancy, false);
+  }
+
+
+  // 654 - TOTAL RUN OUTS
+
+  if (marketId === "654") {
+    const runOutCount =
+      batsmen.filter((batsman) =>
+        String(
+          batsman?.description ?? ""
+        )
+          .toLowerCase()
+          .includes("run out")
+      ).length;
+
+    const target =
+      toNumber(specifier);
+
+    if (target === null) {
+      return null;
+    }
+
+    return runOutCount > target
+      ? findOverUnder(fancy, true)
+      : findOverUnder(fancy, false);
+  }
+
+
+         
+  // 683 - HIGHEST BATSMAN RUNS
+         
+
+  if (marketId === "683") {
+    if (!batsmen.length) {
+      return null;
+    }
+
+    let highestBatsman = null;
+    let highestRuns = -Infinity;
+
+    batsmen.forEach((batsman) => {
+      const runs =
+        toNumber(batsman?.runs);
+
+      if (
+        runs !== null &&
+        runs > highestRuns
+      ) {
+        highestRuns = runs;
+        highestBatsman = batsman;
+      }
+    });
+
+    if (!highestBatsman) {
+      return null;
+    }
+
+    return findPlayerSelection(
+      fancy,
+      highestBatsman?.playerId,
+      highestBatsman?.batsmanName
+    );
+  }
+
+
+         
+  // 684 - HIGHEST BOWLER WICKETS
+         
+
+  if (marketId === "684") {
+    if (!bowlers.length) {
+      return null;
+    }
+
+    let highestBowler = null;
+    let highestWickets = -Infinity;
+
+    bowlers.forEach((bowler) => {
+      const wickets =
+        toNumber(bowler?.wickets);
+
+      if (
+        wickets !== null &&
+        wickets > highestWickets
+      ) {
+        highestWickets = wickets;
+        highestBowler = bowler;
+      }
+    });
+
+    if (!highestBowler) {
+      return null;
+    }
+
+    return findPlayerSelection(
+      fancy,
+      highestBowler?.playerId,
+      highestBowler?.bowlerName
+    );
+  }
+
+
+         
+  // 695 - TOTAL DUCKS
+         
+
+  if (marketId === "695") {
+    const ducks =
+      batsmen.filter((batsman) => {
+        const runs =
+          toNumber(batsman?.runs);
+
+        return runs === 0;
+      }).length;
+
+    const target =
+      toNumber(specifier);
+
+    if (target === null) {
+      return null;
+    }
+
+    return ducks > target
+      ? findOverUnder(fancy, true)
+      : findOverUnder(fancy, false);
+  }
+
+
+         
+  // 698 - TEAM WITH TOP BATSMAN
+         
+
+  if (marketId === "698") {
+    if (!batsmen.length) {
+      return null;
+    }
+
+    let topBatsman = null;
+    let highestRuns = -Infinity;
+
+    batsmen.forEach((batsman) => {
+      const runs =
+        toNumber(batsman?.runs);
+
+      if (
+        runs !== null &&
+        runs > highestRuns
+      ) {
+        highestRuns = runs;
+        topBatsman = batsman;
+      }
+    });
+
+    if (!topBatsman) {
+      return null;
+    }
+
+    const playerId =
+      topBatsman?.playerId;
+
+    const playerInning =
+      innings.find(
+        (inning) =>
+          Array.isArray(
+            inning?.batsmen
+          ) &&
+          inning.batsmen.some(
+            (batsman) =>
+              String(
+                batsman?.playerId
+              ) === String(playerId)
+          )
+      );
+
+    if (!playerInning?.teamName) {
+      return null;
+    }
+
+    return findTeamSelection(
+      fancy,
+      playerInning.teamName
+    );
+  }
+
+
+         
+  // 699 - TEAM WITH TOP BOWLER
+         
+
+  if (marketId === "699") {
+    if (!bowlers.length) {
+      return null;
+    }
+
+    let topBowler = null;
+    let highestWickets = -Infinity;
+
+    bowlers.forEach((bowler) => {
+      const wickets =
+        toNumber(bowler?.wickets);
+
+      if (
+        wickets !== null &&
+        wickets > highestWickets
+      ) {
+        highestWickets = wickets;
+        topBowler = bowler;
+      }
+    });
+
+    if (!topBowler) {
+      return null;
+    }
+
+    const playerId =
+      topBowler?.playerId;
+
+    const playerInning =
+      innings.find(
+        (inning) =>
+          Array.isArray(
+            inning?.bowlers
+          ) &&
+          inning.bowlers.some(
+            (bowler) =>
+              String(
+                bowler?.playerId
+              ) === String(playerId)
+          )
+      );
+
+    if (!playerInning?.teamName) {
+      return null;
+    }
+
+    return findTeamSelection(
+      fancy,
+      playerInning.teamName
+    );
+  }
+
+
+         
+  // 702 - TOP BATSMAN RUNS OVER / UNDER
+         
+
+  if (marketId === "702") {
+    if (!batsmen.length) {
+      return null;
+    }
+
+    let highestRuns = -Infinity;
+
+    batsmen.forEach((batsman) => {
+      const runs =
+        toNumber(batsman?.runs);
+
+      if (
+        runs !== null &&
+        runs > highestRuns
+      ) {
+        highestRuns = runs;
+      }
+    });
+
+    const target =
+      toNumber(specifier);
+
+    if (
+      target === null ||
+      highestRuns === -Infinity
+    ) {
+      return null;
+    }
+
+    return highestRuns > target
+      ? findOverUnder(fancy, true)
+      : findOverUnder(fancy, false);
+  }
+
+
+         
+  // 696 - TOTAL WIDES
+         
+
+  if (marketId === "696") {
+    let totalWides = 0;
+
+    innings.forEach((inning) => {
+      const wides =
+        toNumber(
+          inning?.extrasSummary?.wides
+        );
+
+      if (wides !== null) {
+        totalWides += wides;
+      }
+    });
+
+    const target =
+      toNumber(specifier);
+
+    if (target === null) {
+      return null;
+    }
+
+    return totalWides > target
+      ? findOverUnder(fancy, true)
+      : findOverUnder(fancy, false);
+  }
+
+
+         
+  // 701 - PLAYER MILESTONE YES / NO
+         
+
+  if (marketId === "701") {
+    const target =
+      toNumber(specifier);
+
+    if (target === null) {
+      return null;
+    }
+
+    const playerId =
+      fancy?.data?.playerId ??
+      fancy?.playerId ??
+      null;
+
+    const playerName =
+      fancy?.data?.playerName ??
+      fancy?.playerName ??
+      null;
+
+    const player =
+      batsmen.find((batsman) => {
+        if (
+          playerId &&
+          String(
+            batsman?.playerId
+          ) === String(playerId)
+        ) {
+          return true;
+        }
+
+        if (playerName) {
+          return String(
+            batsman?.batsmanName ?? ""
+          )
+            .toLowerCase()
+            .includes(
+              String(playerName)
+                .toLowerCase()
+            );
+        }
+
+        return false;
+      });
+
+    if (!player) {
+      return null;
+    }
+
+    const runs =
+      toNumber(player?.runs);
+
+    if (runs === null) {
+      return null;
+    }
+
+    return findYesNo(
+      fancy,
+      runs >= target
+    );
+  }
+
+
+         
+  // 1131 - BOTH TEAM SCORE MILESTONE
+         
+
+  if (marketId === "1131") {
+    const target =
+      toNumber(specifier);
+
+    if (target === null) {
+      return null;
+    }
+
+    const resultInnings =
+      resultInfo?.innings ?? {};
+
+    const inningValues =
+      Object.values(resultInnings);
+
+    if (!inningValues.length) {
+      return null;
+    }
+
+    const bothTeamsPassed =
+      inningValues.length >= 2 &&
+      inningValues.every((inning) => {
+        const runs =
+          toNumber(inning?.runs);
+
+        return (
+          runs !== null &&
+          runs >= target
+        );
+      });
+
+    return findYesNo(
+      fancy,
+      bothTeamsPassed
+    );
+  }
+
+
+         
+  // 340 - MATCH WINNER
+  // Redis directly gives winningteam
+         
+
+  if (marketId === "340") {
+    const winningTeam =
+      resultInfo?.winningteam;
+
+    if (!winningTeam) {
+      return null;
+    }
+
+    const teamName =
+      winningTeam === "home"
+        ? timelineMatch?.teams?.home?.name
+        : winningTeam === "away"
+          ? timelineMatch?.teams?.away?.name
+          : null;
+
+    if (!teamName) {
+      return null;
+    }
+
+    return findTeamSelection(
+      fancy,
+      teamName
+    );
+  }
+
+
+         
+  // 639 - TOTAL FOURS
+         
+
+  if (marketId === "639") {
+    let totalFours = 0;
+
+    batsmen.forEach((batsman) => {
+      const fours =
+        toNumber(batsman?.fours);
+
+      if (fours !== null) {
+        totalFours += fours;
+      }
+    });
+
+    const target =
+      toNumber(specifier);
+
+    if (target === null) {
+      return null;
+    }
+
+    return totalFours > target
+      ? findOverUnder(fancy, true)
+      : findOverUnder(fancy, false);
+  }
+
+
+         
+  // 640 - TOTAL SIXES
+         
+
+  if (marketId === "640") {
+    let totalSixes = 0;
+
+    batsmen.forEach((batsman) => {
+      const sixes =
+        toNumber(batsman?.sixes);
+
+      if (sixes !== null) {
+        totalSixes += sixes;
+      }
+    });
+
+    const target =
+      toNumber(specifier);
+
+    if (target === null) {
+      return null;
+    }
+
+    return totalSixes > target
+      ? findOverUnder(fancy, true)
+      : findOverUnder(fancy, false);
+  }
+
+
+         
+  // 655 - TOTAL EXTRAS
+         
+
+  if (marketId === "655") {
+    let totalExtras = 0;
+
+    innings.forEach((inning) => {
+      const extras =
+        inning?.extrasSummary;
+
+      if (!extras) {
+        return;
+      }
+
+      totalExtras +=
+        (toNumber(extras?.byes) ?? 0) +
+        (toNumber(extras?.noBalls) ?? 0) +
+        (toNumber(extras?.legByes) ?? 0) +
+        (toNumber(extras?.wides) ?? 0) +
+        (toNumber(extras?.penalties) ?? 0);
+    });
+
+    const target =
+      toNumber(specifier);
+
+    if (target === null) {
+      return null;
+    }
+
+    return totalExtras > target
+      ? findOverUnder(fancy, true)
+      : findOverUnder(fancy, false);
+  }
+
+
+         
+  // 710 - TOSS WINNER SAME AS MATCH WINNER
+         
+
+  if (marketId === "710") {
+    const winningTeam =
+      resultInfo?.winningteam;
+
+    const tossWinner =
+      timelineMatch?.coinToss?.winner ??
+      timelineMatch?.coinToss?.winningteam ??
+      timelineMatch?.coinToss?.team ??
+      null;
+
+    if (!winningTeam || !tossWinner) {
+      return null;
+    }
+
+    const sameTeam =
+      String(winningTeam).toLowerCase() ===
+      String(tossWinner).toLowerCase();
+
+    return findYesNo(
+      fancy,
+      sameTeam
+    );
+  }
+
+
+  return null;
+};
+
+
+       
+// PROCESS SINGLE MATCH RESULT
+       
 
 const processSingleMatchResult = async (eventId) => {
   try {
-    // 1. Redis se active matches lao
-    const matches = await getMatchesFromRedis();
+    const matches =
+      await getMatchesFromRedis();
 
     if (!Array.isArray(matches)) {
-      console.log("❌ Matches not found in Redis");
-      return;
+      return [];
     }
 
-    // 2. Sirf requested eventId + matchType All
     const match = matches.find(
       (item) =>
-        String(item?.eventId) === String(eventId) &&
-        String(item?.matchType || "").toLowerCase() === "all"
+        String(item?.eventId) ===
+        String(eventId)
     );
 
     if (!match) {
-      console.log(`❌ Match not found: ${eventId}`);
-      return;
+      return [];
     }
 
-    console.log("\n================================");
-    console.log(`🎯 EVENT ID: ${eventId}`);
-    console.log(`🏏 MATCH: ${match.eventName}`);
-    console.log("================================");
+    const sportId =
+      Number(match?.sportId);
 
-    // 3. Fancy DB se records
-    const fancyRecords = await Fancy.find({
-      eventId: String(eventId),
-    }).lean();
-
-    console.log(`📦 Fancy records: ${fancyRecords.length}`);
-
-    // 4. Score API se latest score
-    const scoreResponse = await fetchActualScore(match);
-
-      console.log(scoreResponse,"Score Response");
-
-    if (!scoreResponse) {
-      console.log("❌ Score response not found");
-      return;
+    if (sportId !== 4) {
+      return [];
     }
 
-    // fetchActualScore ka returned structure
-    const score = scoreResponse?.data?.scorecard?.score;
+    const scoreKey =
+      getScoreRedisKey(
+        eventId,
+        sportId
+      );
 
-    if (!score) {
-      console.log("❌ Score data not found");
-      return;
+    const scoreRedis =
+      await redisClient.get(scoreKey);
+
+    if (!scoreRedis) {
+      return [];
     }
 
-    console.log("\n📊 SCORE DATA");
-    console.log({
-      matchTitle: score.matchTitle,
-      status: score.matchStatus,
-      innings: score.innings?.map((inning) => ({
-        team: inning.teamName,
-        runs: inning.runs,
-        wickets: inning.wickets,
-        overs: inning.overs,
-        conclusion: inning.conclusion,
-      })),
-    });
+    let scoreResponse;
 
-    // 5. Har fancy ka result calculate karo
-    for (const fancy of fancyRecords) {
-      const code = String(fancy?.id);
+    try {
+      const parsed =
+        JSON.parse(scoreRedis);
 
-      let result = null;
+      scoreResponse =
+        parsed?.data ?? parsed;
 
-      switch (code) {
-        case "342":
-          result = calculateTieResult(score);
-          break;
+    } catch (parseError) {
+      console.error(
+        `Score Redis JSON parse error | eventId=${eventId}:`,
+        parseError.message
+      );
 
-        case "639":
-          result = calculateTotalFours(score);
-          break;
+      return [];
+    }
 
-        case "640":
-          result = calculateTotalSixes(score);
-          break;
+    const completed =
+      isMatchCompleted(scoreResponse);
 
-        case "647":
-          result = calculateMostFours(score);
-          break;
+    if (!completed) {
+      return [];
+    }
 
-        case "648":
-          result = calculateMostSixes(score);
-          break;
+    const fancies =
+      await Fancy.find({
+        eventId: String(eventId),
+        sportId: sportId,
+      }).lean();
 
-        case "654":
-          result = calculateTotalRunOuts(score);
-          break;
+    if (
+      !Array.isArray(fancies) ||
+      !fancies.length
+    ) {
+      return [];
+    }
 
-        case "655":
-          result = calculateTotalExtras(score);
-          break;
 
-        case "682":
-          result = calculateHighestScoringOver(score);
-          break;
+           
+    // CALCULATE ALL RESULTS
+           
 
-        case "683":
-          result = calculateTopBatter(score);
-          break;
+    const results = [];
 
-        case "684":
-          result = calculateTopBowler(score);
-          break;
+    for (const fancy of fancies) {
+      try {
+        const marketId =
+          String(
+            fancy?.apiSiteMarketId ?? ""
+          );
 
-        case "695":
-          result = calculateTotalDucks(score);
-          break;
+        if (!marketId) {
+          continue;
+        }
 
-        case "696":
-          result = calculateTotalWides(score);
-          break;
+        const apiSiteSelectionId =
+          calculateFancyResult(
+            fancy,
+            scoreResponse
+          );
 
-        case "698":
-          result = calculateTeamWithTopBatter(score);
-          break;
+        if (!apiSiteSelectionId) {
+          continue;
+        }
 
-        case "699":
-          result = calculateTeamWithTopBowler(score);
-          break;
+        const resultData = {
+          eventId: String(eventId),
+          sportId: sportId,
+          apiSiteMarketId: marketId,
+          apiSiteSelectionId:
+            String(apiSiteSelectionId),
+          fancyName:
+            fancy?.fancyName ?? null,
+        };
 
-        case "702":
-          result = calculateTopBatterTotal(score);
-          break;
+        results.push(resultData);
 
-        case "1131":
-          result = calculateBothTeams170(score);
-          break;
+        console.log(
+          `🏆 RESULT FOUND | eventId=${eventId} | market=${marketId} | fancy=${fancy?.fancyName} | apiSiteSelectionId=${apiSiteSelectionId}`
+        );
 
-        default:
-          result = null;
+      } catch (fancyError) {
+        // console.error(
+        //   ` Fancy result calculation error | eventId=${eventId} | market=${fancy?.apiSiteMarketId}:`,
+        //   fancyError.message
+        // );
+
+        console.error(
+          fancyError.stack
+        );
       }
-
-      console.log("\n--------------------------------");
-      console.log("Fancy:", fancy.fancyName);
-      console.log("Code:", code);
-      console.log("Result:", result);
-      console.log("--------------------------------");
     }
 
-    return {
-      eventId,
-      match: match.eventName,
-      score,
-      fancyCount: fancyRecords.length,
-    };
+
+           
+    // FINAL SUMMARY
+           
+
+    return results;
+
   } catch (error) {
-    console.error(
-      `❌ Single match result error [${eventId}]:`,
-      error.message
-    );
+    console.error(error.stack);
+
+    return [];
   }
 };
 
-/* =========================================================
-   EXPORTS
-========================================================= */
+
+       
+// PROCESS ALL COMPLETED MATCHES
+       
+
+const processAllCompletedFancyResults = async () => {
+  try {
+    const matches =
+      await getMatchesFromRedis();
+
+    if (!Array.isArray(matches)) {
+      return [];
+    }
+
+    const cricketMatches =
+      matches.filter(
+        (match) =>
+          Number(match?.sportId) === 4
+      );
+
+    const allResults = [];
+
+    for (const match of cricketMatches) {
+      const results =
+        await processSingleMatchResult(
+          match.eventId
+        );
+
+      if (
+        Array.isArray(results) &&
+        results.length
+      ) {
+        allResults.push(...results);
+      }
+    }
+
+    return allResults;
+
+  } catch (error) {
+    console.error(error.stack);
+
+    return [];
+  }
+};
+
 
 module.exports = {
-  processFancyResults,
-  processFancyResultForMatch,
-  calculateFancyResult,
-
-  getResultMatchesFromRedis,
-  getFancyByEventId,
-  getAfterMatchCompletedFancies,
-
-  getCricketScore,
-  getCricketInnings,
-
-  getTieResult,
-  getTotalFours,
-  getTotalSixes,
-  getTotalRunOuts,
-  getTotalExtras,
-  getTotalWides,
-  getHighestScoringOver,
-  getTopBatter,
-  getTopBowler,
-  getTopBatterTotal,
-  getTeamWithTopBatter,
-  getTeamWithTopBowler,
-  getTotalDucks,
-  getBothTeams170,
   processSingleMatchResult,
-  
+  processAllCompletedFancyResults,
+  calculateFancyResult,
+  isMatchCompleted,
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

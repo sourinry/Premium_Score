@@ -36,10 +36,6 @@ const fetchFancyForMatch = async (match) => {
     // SPORT CHECK
 
     if (!FANCY_API[sportId]) {
-      console.log(
-        `⚠️ Fancy API not configured for sportId=${sportId}`
-      );
-
       return;
     }
 
@@ -48,9 +44,7 @@ const fetchFancyForMatch = async (match) => {
     const url =
       `${FANCY_API[sportId]}?eventId=${eventId}`;
 
-    console.log(
-      `🎰 Fetching fancy | eventId=${eventId} | sportId=${sportId}`
-    );
+  
 
     // API CALL
 
@@ -66,15 +60,17 @@ const fetchFancyForMatch = async (match) => {
 
     // SPORTS BOOK MARKET CHECK
 
+    
+
     const sportsBookMarket =
       response?.data?.data?.sportsBookMarket;
+
+      
 
     if (
       sportsBookMarket === undefined
     ) {
-      console.log(
-        `⚠️ sportsBookMarket not found | eventId=${eventId} | sportId=${sportId}`
-      );
+     
 
       return;
     }
@@ -119,10 +115,6 @@ const fetchFancyForMatch = async (match) => {
       );
     }
 
-    console.log(
-      `📦 Fancy records received | eventId=${eventId} | sportId=${sportId}: ${fancyData.length}`
-    );
-
     if (!fancyData.length) {
       return;
     }
@@ -136,9 +128,7 @@ const fetchFancyForMatch = async (match) => {
           dt.sportsBookSelection != null
       );
 
-    console.log(
-      `✅ Valid fancy records | eventId=${eventId}: ${validFancy.length}`
-    );
+
 
     if (!validFancy.length) {
       return;
@@ -190,9 +180,7 @@ const fetchFancyForMatch = async (match) => {
           )
       );
 
-    console.log(
-      `🆕 New fancy records | eventId=${eventId}: ${notExists.length}`
-    );
+
 
     // INSERT
 
@@ -241,26 +229,12 @@ const fetchFancyForMatch = async (match) => {
             }
           );
 
-        console.log(
-          `✅ ${inserted.length} fancy inserted | eventId=${eventId} | sportId=${sportId}`
-        );
       } catch (error) {
-        console.error(
-          `❌ Fancy insert error | eventId=${eventId}:`,
-          error.message
-        );
       }
     } else {
-      console.log(
-        `ℹ️ No new fancy | eventId=${eventId}`
-      );
     }
 
   } catch (error) {
-    console.error(
-      `❌ Fancy failed | eventId=${match.eventId} | sportId=${match.sportId}:`,
-      error.message
-    );
   }
 };
 
@@ -269,50 +243,23 @@ const fetchFancyForMatch = async (match) => {
 
 const processFancyFromRedis = async () => {
   try {
-    console.log(
-      "\n=========================================="
-    );
 
-    console.log(
-      "🎰 FANCY SERVICE STARTED"
-    );
-
-    console.log(
-      "=========================================="
-    );
-
-    // GET MATCHES FROM REDIS
-
-    const matches =
-      await getMatchesFromRedis();
+    const matches =await getMatchesFromRedis();
 
     if (!matches.length) {
-      console.log(
-        "⚠️ No matches available in Redis"
-      );
-
       return;
     }
-
-    // -------------------------------------------------
+ 
     // PROCESS ALL MATCHES
-    // -------------------------------------------------
-
+          
     for (const match of matches) {
       await fetchFancyForMatch(
         match
       );
     }
 
-    console.log(
-      "✅ FANCY SERVICE COMPLETED"
-    );
-
   } catch (error) {
-    console.error(
-      "❌ processFancyFromRedis error:",
-      error.message
-    );
+
   }
 };
 
