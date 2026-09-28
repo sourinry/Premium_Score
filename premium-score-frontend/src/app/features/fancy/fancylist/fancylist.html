@@ -1,0 +1,81 @@
+<div class="fancy-result-page">
+
+  <!-- Page Title -->
+  <div class="page-title">
+    <span class="title-black">Fancy Result:-</span>
+    <span class="match-name">{{ matchName}}</span>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrapper">
+
+    <table class="fancy-table">
+
+      <thead>
+        <tr>
+          <th class="sr-column">#</th>
+          <th class="id-column">Id</th>
+          <th>Fancy Name</th>
+          <th class="result-column">Result</th>
+          <th class="selection-column">SelectionId</th>
+          <th class="action-column">Action</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let item of fancyList; let i = index">
+
+          <!-- # -->
+          <td class="sr-no">
+            {{ i + 1 }}
+          </td>
+
+          <!-- ID -->
+          <td>
+            <span class="id-text">
+              {{ item?.winner?.id }}
+            </span>
+          </td>
+
+          <!-- Fancy Name -->
+          <td>
+            <span class="fancy-name">
+              {{ item?.fancyName }}
+            </span>
+          </td>
+
+          <!-- Result -->
+          <td>
+            <span class="result-text">
+              {{ item?.winner?.selectionName }}
+            </span>
+          </td>
+
+          <!-- Selection ID -->
+          <td>
+            <span class="selection-id">
+              {{ item?.winner?.id }}
+            </span>
+          </td>
+
+          <!-- Action -->
+          <td>
+            <button
+              type="button"
+              class="rollback-btn"
+              (click)="rollback(item)"
+            >
+              RollBack
+            </button>
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</div>

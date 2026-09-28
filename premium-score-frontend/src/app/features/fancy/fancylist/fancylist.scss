@@ -1,0 +1,210 @@
+.fancy-result-page {
+  width: 100%;
+  background: #fff;
+}
+
+/* =========================
+   PAGE TITLE
+========================= */
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.title-black {
+  color: #111;
+}
+
+.match-name {
+  color: #3366cc;
+  text-transform: uppercase;
+}
+
+/* =========================
+   TABLE WRAPPER
+========================= */
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.fancy-table {
+  width: 100%;
+  min-width: 1000px;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #fff;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.fancy-table thead th {
+  height: 52px;
+  padding: 10px 10px;
+  background: #202428;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  border-right: 1px solid #4b4f52;
+  white-space: nowrap;
+}
+
+.fancy-table thead th:first-child {
+  border-left: 1px solid #202428;
+}
+
+.fancy-table thead th:last-child {
+  border-right: 1px solid #202428;
+}
+
+/* =========================
+   COLUMN WIDTH
+========================= */
+
+.sr-column {
+  width: 70px;
+  text-align: center !important;
+}
+
+.id-column {
+  width: 205px;
+}
+
+.result-column {
+  width: 320px;
+}
+
+.selection-column {
+  width: 225px;
+}
+
+.action-column {
+  width: 215px;
+}
+
+/* =========================
+   BODY
+========================= */
+
+.fancy-table tbody td {
+  height: 67px;
+  padding: 10px;
+  font-size: 17px;
+  border-right: 1px solid #82b6ef;
+  border-bottom: 1px solid #82b6ef;
+  border-left: 1px solid #82b6ef;
+  vertical-align: middle;
+}
+
+.fancy-table tbody tr:nth-child(even) {
+  background: #f4f4f4;
+}
+
+.fancy-table tbody tr:nth-child(odd) {
+  background: #ffffff;
+}
+
+/* =========================
+   SERIAL NUMBER
+========================= */
+
+.sr-no {
+  text-align: center;
+  color: #e32626;
+  font-weight: 700;
+}
+
+/* =========================
+   ID
+========================= */
+
+.id-text {
+  color: #2864c7;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* =========================
+   FANCY NAME
+========================= */
+
+.fancy-name {
+  color: #116b27;
+  font-weight: 700;
+}
+
+/* =========================
+   RESULT
+========================= */
+
+.result-text {
+  color: #2864c7;
+  font-weight: 700;
+}
+
+/* =========================
+   SELECTION ID
+========================= */
+
+.selection-id {
+  color: #e32626;
+  font-weight: 700;
+}
+
+/* =========================
+   ROLLBACK BUTTON
+========================= */
+
+.rollback-btn {
+  border: none;
+  outline: none;
+  background: #0d6efd;
+  color: #fff;
+  padding: 11px 18px;
+  min-width: 110px;
+  border-radius: 7px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.rollback-btn:hover {
+  background: #0958d9;
+}
+
+.rollback-btn:active {
+  transform: translateY(1px);
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 768px) {
+
+  .page-title {
+    font-size: 24px;
+    flex-wrap: wrap;
+  }
+
+  .fancy-table {
+    min-width: 1000px;
+  }
+
+}

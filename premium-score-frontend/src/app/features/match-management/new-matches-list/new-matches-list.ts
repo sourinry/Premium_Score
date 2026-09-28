@@ -3,6 +3,7 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { Api } from '../../../services/api';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-new-matches-list',
@@ -58,7 +59,7 @@ export class NewMatchesList implements OnInit {
   // CONSTRUCTOR
   // =====================================================
 
-  constructor(private apiService: Api) {}
+  constructor(private apiService: Api, private router:Router) {}
 
   // =====================================================
   // INIT
@@ -385,7 +386,11 @@ export class NewMatchesList implements OnInit {
   // =====================================================
 
   allFancy(match: any): void {
-    console.log('All Fancy:', match);
+   this.router.navigate(['fancy-list'],{
+    queryParams:{
+      eventId:match.eventId
+    }
+   })
   }
 
   // =====================================================

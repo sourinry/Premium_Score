@@ -23,10 +23,23 @@ export const routes: Routes = [
   },
 
   {
+  path: 'fancy-list',
+  loadComponent: () =>
+    import('./features/fancy/fancylist/fancylist')
+      .then(m => m.Fancylist)
+},
+
+  {
     path: '',
     redirectTo: 'matches/new',
     pathMatch: 'full'
   },
+
+  //   {
+  //   path: '',
+  //   redirectTo: 'fancy-list',
+  //   pathMatch: 'full'
+  // },
 
   {
     path: '**',

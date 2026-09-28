@@ -120,4 +120,11 @@ export class Api {
     );
   }
 
+
+  getFancyListByEventId(id:any){
+    return this.http.post(`${this.baseApiUrl}/fancy`,{
+      eventId:id
+    })
+  }
+
 }
