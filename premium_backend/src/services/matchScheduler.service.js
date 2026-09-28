@@ -106,13 +106,11 @@ const fetchMatchesBySport = async (sportId) => {
       },
     );
 
-    if (activeResult.modifiedCount > 0) {
-    }
-
+   
     // MARK MISSING MATCHES AS OLD
     // ONLY FOR THIS SPORT
 
-    const oldResult = await Match.updateMany(
+   await Match.updateMany(
       {
         sportId: sportId,
 
@@ -128,9 +126,6 @@ const fetchMatchesBySport = async (sportId) => {
         },
       },
     );
-
-    if (oldResult.modifiedCount > 0) {
-    }
 
     // NEW MATCHES
 
@@ -179,12 +174,11 @@ const fetchMatchesBySport = async (sportId) => {
 
     if (addNewMatch.length > 0) {
       try {
-        const insertedMatches = await Match.insertMany(addNewMatch, {
+         await Match.insertMany(addNewMatch, {
           ordered: false,
         });
       } catch (insertError) {}
-    } else {
-    }
+    } 
 
     // UPDATE EXISTING MATCHES
 
@@ -258,30 +252,10 @@ const fetchMatches = async () => {
   }
 };
 
-// START SCHEDULER
 
-const startMatchScheduler = () => {
-  const apiUrl = process.env.MAIN_REDIS_MATCHES_API;
 
-  if (!apiUrl) {
-    return;
-  }
-
-  // INITIAL FETCH
-
-  fetchMatches();
-
-  // EVERY 10 MINUTES
-
-  cron.schedule("*/10 * * * *", async () => {
-    await fetchMatches();
-  });
-};
-
-// EXPORT
 
 module.exports = {
-  startMatchScheduler,
   fetchMatches,
   fetchMatchesBySport,
 };

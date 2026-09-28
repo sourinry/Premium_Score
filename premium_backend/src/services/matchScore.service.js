@@ -25,9 +25,8 @@ const SUPPORTED_SPORT_IDS = [1, 2, 4];
 
 // SCORE ID UPDATE INTERVAL
 
-// Har 10 seconds me getAllScoreId API call hogi
-// aur DB me scoreId = "0" wale matches update honge.
-const SCORE_ID_UPDATE_INTERVAL = 10 * 1000;
+// Har 30 seconds me getAllScoreId API call hogi
+const SCORE_ID_UPDATE_INTERVAL = 30 * 1000;
 
 // STEP 1
 // GET ALL SCORE IDS
@@ -136,6 +135,7 @@ const updateMissingScoreIds = async (matches, scoreIdMap) => {
 
       if (redisMatch) {
         redisMatch.scoreId = String(scoreId);
+        await redisClient.set("matches:activeMatches", JSON.stringify(matches));
       }
     } else if (
       updateResult.matchedCount > 0 &&
@@ -165,14 +165,10 @@ const updateHomeAwayTeams = async (eventId, sportId, responseData) => {
     if (sportId == 2) {
       homeName = responseData?.result?.match?.teams?.home?.name;
       awayName = responseData?.result?.match?.teams?.away?.name;
-    }
-
-    else if (sportId == 1) {
+    } else if (sportId == 1) {
       homeName = responseData?.result?.match?.teams?.home?.mediumname;
       awayName = responseData?.result?.match?.teams?.away?.mediumname;
-    }
-
-    else if (sportId == 4) {
+    } else if (sportId == 4) {
       homeName = responseData?.result?.timeline?.match?.teams?.home?.mediumname;
       awayName = responseData?.result?.timeline?.match?.teams?.away?.mediumname;
     }
@@ -212,7 +208,6 @@ const fetchActualScore = async (match) => {
     const eventId = String(match?.eventId || "").trim();
     const sportId = Number(match?.sportId);
     const scoreId = String(match?.scoreId || "").trim();
-
 
     if (!eventId) {
       return null;
@@ -365,33 +360,33 @@ const runScoreIdSync = async () => {
     }
     await updateMissingScoreIds(matches, scoreIdMap);
   } catch (error) {
+     console.error(
+    "Score ID Sync Error:",
+    error?.stack || error?.message || error
+  );
   } finally {
     scoreIdSyncRunning = false;
   }
 };
 
-// START 10 SECOND SCORE ID SYNC
 
-const startScoreIdSync = () => {
-  runScoreIdSync();
-  // Har 10 seconds
-  setInterval(runScoreIdSync, SCORE_ID_UPDATE_INTERVAL);
-};
-
-// PROCESS ALL MATCHES FROM REDIS
 
 const processScoresFromRedis = async () => {
   try {
     const matches = await getMatchesFromRedis();
+
     if (!Array.isArray(matches) || matches.length === 0) {
       return;
     }
 
-    const scoreIdMap = await getAllScoreIds();
-    await updateMissingScoreIds(matches, scoreIdMap);
     const { successCount, failedCount } =
       await processScoreWithConcurrency(matches);
-  } catch (error) {}
+  } catch (error) {
+    console.error(
+      "processScoresFromRedis error:",
+      error?.stack || error?.message || error,
+    );
+  }
 };
 
 module.exports = {
@@ -400,5 +395,4 @@ module.exports = {
   fetchActualScore,
   processScoresFromRedis,
   runScoreIdSync,
-  startScoreIdSync,
 };

@@ -100,10 +100,6 @@ const matchSchema = new mongoose.Schema(
 );
 
 
-// =====================================================
-// EVENT + SPORT UNIQUE
-// =====================================================
-
 matchSchema.index(
   {
     eventId: 1,

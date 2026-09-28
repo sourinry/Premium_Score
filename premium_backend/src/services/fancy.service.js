@@ -241,25 +241,60 @@ const fetchFancyForMatch = async (match) => {
 
 // PROCESS FANCY FROM REDIS
 
+// const processFancyFromRedis = async () => {
+//   try {
+
+//     const matches =await getMatchesFromRedis();
+
+//     if (!matches.length) {
+//       return;
+//     }
+ 
+//     // PROCESS ALL MATCHES
+          
+//     for (const match of matches) {
+//       await fetchFancyForMatch(
+//         match
+//       );
+//     }
+
+//   } catch (error) {
+
+//   }
+// };
+
 const processFancyFromRedis = async () => {
   try {
+    console.log("🔄 Starting Fancy processing...");
 
-    const matches =await getMatchesFromRedis();
+    const matches = await getMatchesFromRedis();
+
+    console.log(`📦 Matches found in Redis: ${matches.length}`);
 
     if (!matches.length) {
+      console.log("⚠️ No matches found in Redis");
       return;
     }
- 
-    // PROCESS ALL MATCHES
-          
+
     for (const match of matches) {
-      await fetchFancyForMatch(
-        match
+      console.log(
+        `🔄 Fetching Fancy: eventId=${match.eventId}, sportId=${match.sportId}`
+      );
+
+      await fetchFancyForMatch(match);
+
+      console.log(
+        `✅ Fancy processed: eventId=${match.eventId}`
       );
     }
 
-  } catch (error) {
+    console.log("✅ All Fancy processing completed");
 
+  } catch (error) {
+    console.error(
+      "❌ processFancyFromRedis failed:",
+      error?.stack || error?.message || error
+    );
   }
 };
 

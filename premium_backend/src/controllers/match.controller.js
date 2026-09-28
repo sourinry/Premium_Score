@@ -15,8 +15,6 @@ const getMatches = async (req, res) => {
       data: result.matches,
     });
   } catch (error) {
-    console.error("❌ Get matches error:", error);
-
     return res.status(500).json({
       success: false,
 
@@ -40,11 +38,8 @@ const getOldMatches = async (req, res) => {
       data: result.matches,
     });
   } catch (error) {
-    console.error("❌ Get old matches error:", error);
-
     return res.status(500).json({
       success: false,
-
       message: error.message || "Failed to fetch old matches",
     });
   }
@@ -78,11 +73,8 @@ const getMatchById = async (req, res) => {
       data: match,
     });
   } catch (error) {
-    console.error("❌ Get match by ID error:", error);
-
     return res.status(500).json({
       success: false,
-
       message: error.message || "Failed to fetch match",
     });
   }

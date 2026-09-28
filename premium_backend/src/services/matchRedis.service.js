@@ -1,21 +1,39 @@
 const Match = require("../models/matchModel");
 const redisClient = require("../config/redis");
+
 const MATCH_REDIS_KEY = "matches:activeMatches";
 
 // SAVE MATCHES FROM DB TO REDIS
 
 const saveMatchesToRedis = async () => {
   try {
+
     const matches = await Match.find({
       isOld: false,
+    //   eventId:"36108897"
     })
       .sort({
         openDate: 1,
       })
       .lean();
-    await redisClient.set(MATCH_REDIS_KEY, JSON.stringify(matches));
+
+    console.log(
+      `📦Matches from MongoDB: ${matches.length}`
+    );
+
+    await redisClient.set(
+      MATCH_REDIS_KEY,
+      JSON.stringify(matches)
+    );
+
+ 
     return matches;
   } catch (error) {
+    console.error(
+      "saveMatchesToRedis failed:",
+      error?.stack || error?.message || error
+    );
+
     throw error;
   }
 };
@@ -24,18 +42,16 @@ const saveMatchesToRedis = async () => {
 
 const getMatchesFromRedis = async () => {
   try {
-    const data = await redisClient.get(MATCH_REDIS_KEY);
+    const data = await redisClient.get(
+      MATCH_REDIS_KEY
+    );
 
     if (!data) {
-
       return [];
     }
 
-    const matches = JSON.parse(data);
-
-    return matches;
+    return JSON.parse(data);
   } catch (error) {
-
     return [];
   }
 };

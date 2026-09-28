@@ -30,7 +30,7 @@ const fancySchema = new mongoose.Schema(
 
     sendStatus: {
       type: String,
-      default: "1",
+      default: "1", // 0 for result winner 1 for result not done
     },
 
     sportId: {
@@ -38,12 +38,15 @@ const fancySchema = new mongoose.Schema(
       default: null,
       index: true,
     },
+
+    winner: {
+      type: mongoose.Schema.Types.Mixed,
+      default: null,
+    },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-module.exports =
-  mongoose.models.Fancy ||
-  mongoose.model("Fancy", fancySchema);
+module.exports = mongoose.models.Fancy || mongoose.model("Fancy", fancySchema);

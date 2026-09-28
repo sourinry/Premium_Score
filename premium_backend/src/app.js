@@ -1,42 +1,32 @@
+
 const express = require("express");
 const cors = require("cors");
-
 const routes = require("./routes/index.route");
-
-const { startMatchScheduler } = require("./services/matchScheduler.service");
-const {
-  startPremiumScheduler,
-} = require("./services/premiumScheduler.service");
-const { startScoreIdSync } = require("./services/matchScore.service");
-
-// const {
-//   processFancyResults,
-// } = require("./services/fancyResult.service");
-
+const { startAllSchedulers} = require("./schedular/index");
 const app = express();
 
-//
-
 const corsOptions = {
-  origin: ["http://localhost:4200", "http://localhost:4800"],
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  origin: [
+    "http://localhost:4200",
+    "http://localhost:4800",
+  ],
+  methods: ["GET", "POST","PUT", "DELETE", "PATCH", "OPTIONS" ],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+  ],
   optionsSuccessStatus: 200,
 };
 
 app.use(cors(corsOptions));
-
 app.use(express.json());
-
 app.use(
   express.urlencoded({
     extended: true,
-  }),
+  })
 );
 
-startMatchScheduler();
-startPremiumScheduler();
-startScoreIdSync();
+startAllSchedulers();
 
 app.get("/", (req, res) => {
   res.json({
